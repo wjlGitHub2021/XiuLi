@@ -1,0 +1,14 @@
+.DS_Store
+.superpowers/
+
+# Xcode
+DerivedData/
+*.xcuserstate
+xcuserdata/
+
+# Swift Package Manager
+.build/
+.swiftpm/
+
+# Supabase local CLI state
+supabase/.temp/
