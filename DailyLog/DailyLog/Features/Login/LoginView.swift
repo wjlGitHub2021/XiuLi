@@ -1,11 +1,17 @@
 import SwiftUI
 
+private enum LoginField: Hashable {
+    case email, password
+}
+
 struct LoginView: View {
     @Environment(AppState.self) private var appState
     @State private var email = ""
     @State private var password = ""
     @State private var isLoading = false
     @State private var errorMessage: String?
+    @State private var isPasswordVisible = false
+    @FocusState private var focusedField: LoginField?
 
     private let authService = AuthService()
 
@@ -35,13 +41,38 @@ struct LoginView: View {
                             .keyboardType(.emailAddress)
                             .autocorrectionDisabled()
                             .textInputAutocapitalization(.never)
+                            .submitLabel(.next)
+                            .focused($focusedField, equals: .email)
+                            .onSubmit { focusedField = .password }
                             .padding()
                             .glassEffect(.regular, in: .rect(cornerRadius: 12))
 
-                        SecureField("密码", text: $password)
-                            .textContentType(.password)
-                            .padding()
-                            .glassEffect(.regular, in: .rect(cornerRadius: 12))
+                        HStack {
+                            Group {
+                                if isPasswordVisible {
+                                    TextField("密码", text: $password)
+                                        .textContentType(.password)
+                                        .autocorrectionDisabled()
+                                        .textInputAutocapitalization(.never)
+                                } else {
+                                    SecureField("密码", text: $password)
+                                        .textContentType(.password)
+                                }
+                            }
+                            .submitLabel(.go)
+                            .focused($focusedField, equals: .password)
+                            .onSubmit { Task { await login() } }
+
+                            Button {
+                                isPasswordVisible.toggle()
+                            } label: {
+                                Image(systemName: isPasswordVisible ? "eye.slash" : "eye")
+                                    .foregroundStyle(.secondary)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                        .padding()
+                        .glassEffect(.regular, in: .rect(cornerRadius: 12))
                     }
                 }
 

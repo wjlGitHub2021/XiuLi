@@ -65,7 +65,7 @@ struct FeedItemView: View {
     }
 
     private var relativeTime: String {
-        let interval = Date().timeIntervalSince(message.createdAt)
+        let interval = max(0, Date().timeIntervalSince(message.createdAt))
         if interval < 60 {
             return "刚刚"
         } else if interval < 3600 {

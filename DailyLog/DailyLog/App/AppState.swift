@@ -43,7 +43,11 @@ final class AppState {
             isAuthenticated = true
         } catch {
             // fetchProfile 失败：清理已建立的 session，避免 UI 卡在登录页无反应
-            try? await authService.signOut()
+            do {
+                try await authService.signOut()
+            } catch {
+                print("signOut failed: \(error)")
+            }
             isAuthenticated = false
             currentUser = nil
             loginError = "登录成功但加载用户信息失败，请重试"

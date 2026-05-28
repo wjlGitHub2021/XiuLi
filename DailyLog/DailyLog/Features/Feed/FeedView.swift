@@ -1,4 +1,5 @@
 import SwiftUI
+import Auth
 
 struct FeedView: View {
     @Environment(AppState.self) private var appState
@@ -13,7 +14,7 @@ struct FeedView: View {
             ScrollView {
                 VStack(spacing: Spacing.md) {
                     if let errorMessage {
-                        DLErrorBanner(message: errorMessage)
+                        feedErrorBanner(message: errorMessage)
                             .padding(.horizontal, Spacing.md)
                     }
 
@@ -48,6 +49,31 @@ struct FeedView: View {
         }
     }
 
+    @ViewBuilder
+    private func feedErrorBanner(message: String) -> some View {
+        HStack(spacing: Spacing.sm) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .foregroundStyle(.orange)
+            Text(message)
+                .font(.caption)
+                .foregroundStyle(.primary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            Button {
+                errorMessage = nil
+            } label: {
+                Image(systemName: "xmark")
+                    .font(.caption.bold())
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .padding(Spacing.sm)
+        .background(.yellow.opacity(0.25), in: RoundedRectangle(cornerRadius: 10))
+        .overlay(
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(.orange.opacity(0.4), lineWidth: 1)
+        )
+    }
+
     private func loadFeed() async {
         isLoading = true
         errorMessage = nil
@@ -56,7 +82,18 @@ struct FeedView: View {
         do {
             messages = try await feedService.fetchFeed()
         } catch {
-            errorMessage = "加载动态失败，下拉刷新重试"
+            let desc = error.localizedDescription.lowercased()
+            let isAuthError = error is AuthError
+                || desc.contains("401")
+                || desc.contains("unauthorized")
+                || desc.contains("jwt")
+            if isAuthError {
+                // 登录态失效，退回登录页
+                await appState.signOut()
+                return
+            }
+            // 保留旧数据，只展示刷新失败提示
+            errorMessage = "刷新失败，数据可能不是最新，下拉重试"
         }
     }
 }
