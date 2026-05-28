@@ -10,27 +10,31 @@ struct FeedView: View {
     private let feedService = FeedService()
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: Spacing.md) {
-                    if let errorMessage {
-                        feedErrorBanner(message: errorMessage)
-                            .padding(.horizontal, Spacing.md)
-                    }
+        ZStack {
+            DLBackground()
+            NavigationStack {
+                ScrollView {
+                    VStack(spacing: Spacing.md) {
+                        if let errorMessage {
+                            DLErrorBanner(message: errorMessage)
+                                .padding(.horizontal, Spacing.screenHorizontal)
+                        }
 
-                    if isLoading && messages.isEmpty {
-                        ProgressView()
-                            .padding(.top, 100)
-                    } else if messages.isEmpty {
-                        DLEmptyState(message: "还没有动态，快去完成任务吧")
-                    } else {
-                        feedList
+                        if isLoading && messages.isEmpty {
+                            ProgressView()
+                                .padding(.top, 100)
+                        } else if messages.isEmpty {
+                            DLEmptyState(message: "还没有动态，快去完成任务吧")
+                        } else {
+                            feedList
+                        }
                     }
+                    .padding(.vertical, Spacing.sm)
                 }
-                .padding(.vertical, Spacing.sm)
+                .scrollContentBackground(.hidden)
+                .refreshable { await loadFeed() }
+                .navigationTitle("动态")
             }
-            .refreshable { await loadFeed() }
-            .navigationTitle("动态")
         }
         .task { await loadFeed() }
     }
@@ -42,36 +46,11 @@ struct FeedView: View {
                     FeedItemView(message: message, currentUserId: appState.currentUser?.id)
                         .padding(.horizontal, Spacing.md)
                         .padding(.vertical, Spacing.sm)
-                        .glassEffect(.regular, in: .rect(cornerRadius: 16))
+                        .glassEffect(.regular, in: .rect(cornerRadius: CornerRadius.smallCard))
                 }
             }
             .padding(.horizontal, Spacing.md)
         }
-    }
-
-    @ViewBuilder
-    private func feedErrorBanner(message: String) -> some View {
-        HStack(spacing: Spacing.sm) {
-            Image(systemName: "exclamationmark.triangle.fill")
-                .foregroundStyle(.orange)
-            Text(message)
-                .font(.caption)
-                .foregroundStyle(.primary)
-                .frame(maxWidth: .infinity, alignment: .leading)
-            Button {
-                errorMessage = nil
-            } label: {
-                Image(systemName: "xmark")
-                    .font(.caption.bold())
-                    .foregroundStyle(.secondary)
-            }
-        }
-        .padding(Spacing.sm)
-        .background(.yellow.opacity(0.25), in: RoundedRectangle(cornerRadius: 10))
-        .overlay(
-            RoundedRectangle(cornerRadius: 10)
-                .stroke(.orange.opacity(0.4), lineWidth: 1)
-        )
     }
 
     private func loadFeed() async {

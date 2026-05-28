@@ -9,7 +9,7 @@ struct FeedItemView: View {
             // Type icon
             ZStack {
                 Circle()
-                    .fill(iconColor.opacity(0.15))
+                    .fill(iconColor.opacity(0.18))
                     .frame(width: 40, height: 40)
                 Image(systemName: iconName)
                     .font(.system(size: 18, weight: .semibold))
@@ -20,21 +20,21 @@ struct FeedItemView: View {
                 HStack {
                     Text(senderLabel)
                         .font(.caption.bold())
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Color.dlTextSecondary)
                     Spacer()
                     Text(relativeTime)
                         .font(.caption2)
-                        .foregroundStyle(.tertiary)
+                        .foregroundStyle(Color.dlTextSecondary.opacity(0.7))
                 }
 
                 Text(message.title)
                     .font(.subheadline.weight(.medium))
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(Color.dlTextPrimary)
 
                 if let body = message.body, !body.isEmpty {
                     Text(body)
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Color.dlTextSecondary)
                         .lineLimit(2)
                 }
             }
@@ -52,10 +52,10 @@ struct FeedItemView: View {
 
     private var iconColor: Color {
         switch message.type {
-        case "task_complete": return .green
+        case "task_complete": return Color.dlSuccess
         case "reward_redeem": return Color.dlCoin
-        case "spin_win":      return .purple
-        default:              return .blue
+        case "spin_win":      return Color.dlLavender
+        default:              return Color.dlPlum
         }
     }
 
