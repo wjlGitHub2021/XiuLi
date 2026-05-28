@@ -41,7 +41,15 @@ struct SpinWheelView: View {
             GlassEffectContainer(spacing: 16.0) {
                 VStack(spacing: Spacing.md) {
                     coinCostHeader
-                    wheelGrid
+                    // Bug #26: isLoading 时显示 ProgressView 替代转盘
+                    if isLoading {
+                        ProgressView("加载中...")
+                            .frame(maxWidth: .infinity)
+                            .padding(Spacing.xl)
+                            .glassEffect(.regular, in: .rect(cornerRadius: 20))
+                    } else {
+                        wheelGrid
+                    }
                 }
                 .padding(.horizontal, Spacing.md)
                 .padding(.vertical, Spacing.sm)
@@ -94,9 +102,9 @@ struct SpinWheelView: View {
         .glassEffect(.regular, in: .rect(cornerRadius: 20))
     }
 
+    // Bug #6: .disabled(isSpinning) 防双击（UI 层禁用）
     private var startButton: some View {
         Button {
-            guard !isSpinning else { return }
             Task { await startSpin() }
         } label: {
             VStack(spacing: 4) {
@@ -141,14 +149,24 @@ struct SpinWheelView: View {
         return pos
     }
 
+    // Bug #18: try? 改 do/catch，加载失败 alert 展示错误
     private func loadSpinRewards() async {
         isLoading = true
         defer { isLoading = false }
-        let all = (try? await rewardService.fetchRewards()) ?? []
-        spinRewards = all.filter { $0.type == "spin" }
+        do {
+            let all = try await rewardService.fetchRewards()
+            spinRewards = all.filter { $0.type == "spin" }
+        } catch {
+            errorMessage = error.localizedDescription
+            showError = true
+        }
     }
 
+    // Bug #6: @MainActor 保证 isSpinning check-and-set 原子执行，防双击竞态
+    @MainActor
     private func startSpin() async {
+        // 原子检查：第一个 await 之前同步设置锁
+        guard !isSpinning else { return }
         isSpinning = true
         highlightedIndex = 0
 
@@ -168,8 +186,14 @@ struct SpinWheelView: View {
             timer.invalidate()
             spinTimer = nil
 
-            // Find winning cell and highlight it
-            if let winIndex = displayRewards.firstIndex(where: { $0.name == result.rewardName }) {
+            // Bug #17: SpinResponse 无 rewardId，降级为 name+cost 双字段匹配
+            // 若后端后续返回 reward_id，改为按 id 匹配可消除同名歧义
+            if let winIndex = displayRewards.firstIndex(where: {
+                $0.name == result.rewardName && $0.cost == result.cost
+            }) {
+                highlightedIndex = winIndex
+            } else if let winIndex = displayRewards.firstIndex(where: { $0.name == result.rewardName }) {
+                // 仅 name 匹配时取第一个（同名奖励取 sortOrder 最小的那格）
                 highlightedIndex = winIndex
             }
 

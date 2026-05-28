@@ -5,6 +5,8 @@ struct Reward: Codable, Identifiable, Sendable {
     let name: String
     let description: String?
     let icon: String
+    // cost 保留 Optional 以兼容 DB schema（部分 spin 奖励无固定金币成本）
+    // 展示层使用前需过滤 cost == nil 的 direct 奖励
     let cost: Int?
     let type: String  // "direct" or "spin"
     let probability: Double?

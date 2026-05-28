@@ -11,11 +11,14 @@ struct RewardsView: View {
     @State private var errorMessage: String?
     @State private var showError = false
     @State private var showSpinWheel = false
+    // Bug #5: 并发锁，防止双击 / 并发兑换
+    @State private var isRedeeming = false
 
     private let rewardService = RewardService()
 
+    // Bug #27: 过滤掉 cost == nil 的 direct 奖励（DB schema 兼容）
     var directRewards: [Reward] {
-        rewards.filter { $0.type == "direct" }
+        rewards.filter { $0.type == "direct" && $0.cost != nil }
     }
 
     var body: some View {
@@ -40,9 +43,11 @@ struct RewardsView: View {
         .task { await loadRewards() }
         .alert("确认兑换", isPresented: $showRedeemConfirm, presenting: selectedReward) { reward in
             Button("取消", role: .cancel) {}
+            // Bug #5: 禁用并发提交，guard isRedeeming 在 redeem 内原子完成
             Button("兑换") {
                 Task { await redeem(reward: reward) }
             }
+            .disabled(isRedeeming)
         } message: { reward in
             Text("消耗 \(reward.cost ?? 0) 金币兑换「\(reward.name)」？")
         }
@@ -159,18 +164,33 @@ struct RewardsView: View {
                 .padding(.vertical, 6)
             }
             .buttonStyle(.glass)
+            // Bug #5: 余额不足时禁用兑换按钮
+            .disabled(isRedeeming || (reward.cost ?? 0) > (appState.currentUser?.coins ?? 0))
         }
         .padding(.horizontal, Spacing.md)
         .padding(.vertical, Spacing.sm)
     }
 
+    // Bug #18: try? 改 do/catch，加载失败用 alert 展示错误
     private func loadRewards() async {
         isLoading = true
         defer { isLoading = false }
-        rewards = (try? await rewardService.fetchRewards()) ?? []
+        do {
+            rewards = try await rewardService.fetchRewards()
+        } catch {
+            errorMessage = error.localizedDescription
+            showError = true
+        }
     }
 
+    // Bug #5: @MainActor 保证并发锁原子 check-and-set；Bug #16: catch 也刷新余额
+    @MainActor
     private func redeem(reward: Reward) async {
+        // 原子检查：第一个 await 之前同步设置锁
+        guard !isRedeeming else { return }
+        isRedeeming = true
+        defer { isRedeeming = false }
+
         do {
             let result = try await rewardService.redeemReward(rewardId: reward.id)
             redeemResult = result
@@ -179,6 +199,8 @@ struct RewardsView: View {
         } catch {
             errorMessage = error.localizedDescription
             showError = true
+            // Bug #16: 即使请求失败（超时后服务端可能已扣），也刷新余额保证最终一致
+            await appState.refreshProfile()
         }
     }
 }
