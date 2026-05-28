@@ -221,11 +221,19 @@ struct ProfileView: View {
             }
         }
         guard let userId = appState.currentUser?.id else { return }
-        try? await AppSupabase.client.from("users")
-            .update(["push_enabled": enabled])
-            .eq("id", value: userId.uuidString)
-            .execute()
+        do {
+            try await AppSupabase.client.from("users")
+                .update(["push_enabled": enabled])
+                .eq("id", value: userId.uuidString)
+                .execute()
+        } catch {
+            errorMessage = "推送开关更新失败：\(error.localizedDescription)"
+            showError = true
+        }
         await appState.refreshProfile()
+        isInitializing = true
+        pushEnabled = appState.currentUser?.pushEnabled ?? false
+        isInitializing = false
     }
 
     @MainActor
