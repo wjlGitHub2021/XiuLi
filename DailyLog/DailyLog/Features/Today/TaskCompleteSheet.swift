@@ -19,56 +19,94 @@ struct TaskCompleteSheet: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: Spacing.md) {
-                Text("完成任务：\(task.title)")
-                    .font(.headline)
-                    .multilineTextAlignment(.center)
-                    .padding(.top, Spacing.md)
+            ZStack {
+                DLBackground()
 
-                if let image = selectedImage {
-                    Image(uiImage: image)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(maxHeight: 300)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                } else {
-                    VStack(spacing: Spacing.sm) {
-                        Image(systemName: "camera.fill")
-                            .font(.system(size: 48))
-                            .foregroundStyle(.secondary)
-                        Text("请上传打卡照片")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                    }
-                    .frame(maxWidth: .infinity, minHeight: 200)
-                    .glassEffect(.regular, in: .rect(cornerRadius: 16))
-                }
+                ScrollView {
+                    VStack(spacing: Spacing.md) {
+                        // 任务信息条
+                        HStack(spacing: Spacing.sm) {
+                            Image(systemName: "figure.run")
+                                .font(.title3)
+                                .foregroundStyle(Color.dlLavender)
+                                .frame(width: 40, height: 40)
+                                .glassEffect(.regular.tint(Color.dlLavender.opacity(0.22)), in: .circle)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("打卡")
+                                    .font(.caption)
+                                    .foregroundStyle(Color.dlTextSecondary)
+                                Text(task.title)
+                                    .font(.subheadline.bold())
+                                    .foregroundStyle(Color.dlTextPrimary)
+                                    .lineLimit(1)
+                            }
+                            Spacer()
+                        }
+                        .padding(Spacing.md)
+                        .glassEffect(.regular, in: .rect(cornerRadius: CornerRadius.card))
 
-                Button("选择照片") { showSourcePicker = true }
-                    .buttonStyle(.glassProminent)
-                    .disabled(isUploading)
-
-                if selectedImage != nil {
-                    Button(action: { Task { await submitCompletion() } }) {
-                        if isUploading {
-                            ProgressView()
-                                .frame(maxWidth: .infinity)
+                        // 上传区
+                        if let image = selectedImage {
+                            Image(uiImage: image)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(maxHeight: 320)
+                                .clipShape(RoundedRectangle(cornerRadius: CornerRadius.card))
                         } else {
-                            Text("确认完成")
+                            VStack(spacing: Spacing.sm) {
+                                ZStack {
+                                    Circle()
+                                        .fill(Color.dlLavender.opacity(0.22))
+                                        .frame(width: 72, height: 72)
+                                    Image(systemName: "camera.fill")
+                                        .font(.system(size: 32, weight: .semibold))
+                                        .foregroundStyle(Color.dlLavender)
+                                }
+                                Text("请上传打卡照片")
+                                    .font(.subheadline.bold())
+                                    .foregroundStyle(Color.dlTextPrimary)
+                                Text("上传照片作为完成凭证")
+                                    .font(.caption)
+                                    .foregroundStyle(Color.dlTextSecondary)
+                            }
+                            .frame(maxWidth: .infinity, minHeight: 220)
+                            .padding(Spacing.lg)
+                            .glassEffect(.regular, in: .rect(cornerRadius: CornerRadius.card))
+                        }
+
+                        // 选择照片按钮 (次级)
+                        Button {
+                            showSourcePicker = true
+                        } label: {
+                            Label("选择照片", systemImage: "photo.on.rectangle")
+                                .font(.subheadline.weight(.semibold))
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, Spacing.sm)
+                        }
+                        .buttonStyle(.glass)
+                        .disabled(isUploading)
+
+                        // 确认完成按钮 (主)
+                        if selectedImage != nil {
+                            DLPrimaryButton(
+                                action: { Task { await submitCompletion() } },
+                                isLoading: isUploading,
+                                isDisabled: false
+                            ) {
+                                Text("确认完成")
+                            }
+                        }
+
+                        if let errorMessage {
+                            DLErrorBanner(message: errorMessage)
                         }
                     }
-                    .buttonStyle(.glassProminent)
-                    .disabled(isUploading)
+                    .padding(.horizontal, Spacing.screenHorizontal)
+                    .padding(.vertical, Spacing.sm)
                 }
-
-                if let errorMessage {
-                    DLErrorBanner(message: errorMessage)
-                }
-
-                Spacer()
+                .scrollContentBackground(.hidden)
             }
-            .padding(Spacing.md)
-            .navigationTitle("打卡")
+            .navigationTitle("完成任务")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -76,6 +114,7 @@ struct TaskCompleteSheet: View {
                         .disabled(isUploading)
                 }
             }
+            .tint(Color.dlLavender)
             .confirmationDialog("选择照片来源", isPresented: $showSourcePicker) {
                 Button("拍照") { showCamera = true }
                 Button("从相册选择") { showPhotoLibrary = true }
