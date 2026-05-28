@@ -92,9 +92,18 @@ struct CreateTaskSheet: View {
         defer { isLoading = false }
 
         do {
-            // Enforce 5 active task limit per type
-            let existing = try await taskService.fetchTasks(userId: userId, taskType: taskType, date: taskDate)
-            let pendingCount = existing.filter { $0.status == .pending }.count
+            // 限额规则：
+            // - daily：当天 pending 不超过 5
+            // - weekly / monthly：全局同时 pending 不超过 5（与日期无关）
+            let pendingCount: Int
+            switch taskType {
+            case .daily:
+                let existing = try await taskService.fetchTasks(userId: userId, taskType: .daily, date: taskDate)
+                pendingCount = existing.filter { $0.status == .pending }.count
+            case .weekly, .monthly:
+                let allPending = try await taskService.fetchAllPendingTasks(userId: userId, taskType: taskType)
+                pendingCount = allPending.count
+            }
             if pendingCount >= 5 {
                 errorMessage = "\(taskType.displayName)最多同时存在5个待完成任务"
                 return

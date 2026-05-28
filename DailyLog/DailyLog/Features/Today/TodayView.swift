@@ -22,9 +22,9 @@ struct TodayView: View {
     }
 
     var body: some View {
-        ZStack {
-            DLBackground()
-            NavigationStack {
+        NavigationStack {
+            ZStack {
+                DLBackground()
                 ScrollView {
                     VStack(spacing: Spacing.section) {
                         CalendarView(selectedDate: $selectedDate)
@@ -53,34 +53,34 @@ struct TodayView: View {
                     .padding(.vertical, Spacing.sm)
                 }
                 .scrollContentBackground(.hidden)
-                .refreshable { await loadAllTasks() }
-                .navigationTitle("今日")
-                .toolbarBackground(.hidden, for: .navigationBar)
-                .toolbar {
-                    ToolbarItem(placement: .topBarLeading) { coinBadge }
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button(action: { showCreateSheet = true }) {
-                            Image(systemName: "plus")
-                                .font(.headline)
-                        }
-                        .buttonStyle(.glass)
+            }
+            .refreshable { await loadAllTasks() }
+            .navigationTitle("今日")
+            .toolbarBackground(.hidden, for: .navigationBar)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) { coinBadge }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button(action: { showCreateSheet = true }) {
+                        Image(systemName: "plus")
+                            .font(.headline)
+                    }
+                    .buttonStyle(.glass)
+                }
+            }
+            .sheet(isPresented: $showCreateSheet) {
+                CreateTaskSheet(taskType: .daily) { newTask in
+                    switch newTask.taskType {
+                    case .daily: dailyTasks.insert(newTask, at: 0)
+                    case .weekly: weeklyTasks.insert(newTask, at: 0)
+                    case .monthly: monthlyTasks.insert(newTask, at: 0)
                     }
                 }
-                .sheet(isPresented: $showCreateSheet) {
-                    CreateTaskSheet(taskType: .daily) { newTask in
-                        switch newTask.taskType {
-                        case .daily: dailyTasks.insert(newTask, at: 0)
-                        case .weekly: weeklyTasks.insert(newTask, at: 0)
-                        case .monthly: monthlyTasks.insert(newTask, at: 0)
-                        }
-                    }
-                    .environment(appState)
-                }
-                .sheet(item: $taskToComplete) { task in
-                    TaskCompleteSheet(task: task) { completedTask in
-                        updateTask(completedTask)
-                        Task { await appState.refreshProfile() }
-                    }
+                .environment(appState)
+            }
+            .sheet(item: $taskToComplete) { task in
+                TaskCompleteSheet(task: task) { completedTask in
+                    updateTask(completedTask)
+                    Task { await appState.refreshProfile() }
                 }
             }
         }

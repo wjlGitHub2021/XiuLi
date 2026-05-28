@@ -10,9 +10,9 @@ struct FeedView: View {
     private let feedService = FeedService()
 
     var body: some View {
-        ZStack {
-            DLBackground()
-            NavigationStack {
+        NavigationStack {
+            ZStack {
+                DLBackground()
                 ScrollView {
                     VStack(spacing: Spacing.md) {
                         if let errorMessage {
@@ -36,10 +36,10 @@ struct FeedView: View {
                     .padding(.vertical, Spacing.sm)
                 }
                 .scrollContentBackground(.hidden)
-                .refreshable { await loadFeed() }
-                .navigationTitle("动态")
-                .toolbarBackground(.hidden, for: .navigationBar)
             }
+            .refreshable { await loadFeed() }
+            .navigationTitle("动态")
+            .toolbarBackground(.hidden, for: .navigationBar)
         }
         .task { await loadFeed() }
     }

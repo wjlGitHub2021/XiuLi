@@ -23,9 +23,9 @@ struct ProfileView: View {
     private let profileService = ProfileService()
 
     var body: some View {
-        ZStack {
-            DLBackground()
-            NavigationStack {
+        NavigationStack {
+            ZStack {
+                DLBackground()
                 ScrollView {
                     GlassEffectContainer(spacing: 16.0) {
                         VStack(spacing: Spacing.md) {
@@ -39,13 +39,13 @@ struct ProfileView: View {
                     }
                 }
                 .scrollContentBackground(.hidden)
-                .refreshable { await loadData() }
-                .navigationTitle("我的")
-                .toolbarBackground(.hidden, for: .navigationBar)
-                .confirmationDialog("确认退出登录？", isPresented: $showLogoutConfirm) {
-                    Button("退出登录", role: .destructive) {
-                        Task { await appState.signOut() }
-                    }
+            }
+            .refreshable { await loadData() }
+            .navigationTitle("我的")
+            .toolbarBackground(.hidden, for: .navigationBar)
+            .confirmationDialog("确认退出登录？", isPresented: $showLogoutConfirm) {
+                Button("退出登录", role: .destructive) {
+                    Task { await appState.signOut() }
                 }
             }
         }
@@ -63,24 +63,25 @@ struct ProfileView: View {
                 Image(uiImage: localImage)
                     .resizable()
                     .scaledToFill()
-                    .frame(width: 56, height: 56)
-                    .clipShape(Circle())
             } else if let avatarUrl = appState.currentUser?.avatarUrl, let url = URL(string: avatarUrl) {
                 AsyncImage(url: url) { image in
                     image.resizable().scaledToFill()
                 } placeholder: {
                     Image(systemName: "person.circle.fill")
-                        .font(.system(size: 56))
+                        .resizable()
+                        .scaledToFit()
                         .foregroundStyle(Color.dlTextSecondary)
                 }
-                .frame(width: 56, height: 56)
-                .clipShape(Circle())
             } else {
                 Image(systemName: "person.circle.fill")
-                    .font(.system(size: 56))
+                    .resizable()
+                    .scaledToFit()
                     .foregroundStyle(Color.dlTextSecondary)
             }
         }
+        .frame(width: 56, height: 56)
+        .clipShape(Circle())
+        .contentShape(Circle())
         .overlay {
             if isUploadingAvatar {
                 ProgressView()

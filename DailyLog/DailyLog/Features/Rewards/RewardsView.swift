@@ -22,9 +22,9 @@ struct RewardsView: View {
     }
 
     var body: some View {
-        ZStack {
-            DLBackground()
-            NavigationStack {
+        NavigationStack {
+            ZStack {
+                DLBackground()
                 ScrollView {
                     GlassEffectContainer(spacing: 16.0) {
                         VStack(spacing: Spacing.md) {
@@ -37,12 +37,12 @@ struct RewardsView: View {
                     }
                 }
                 .scrollContentBackground(.hidden)
-                .navigationTitle("奖励")
-                .toolbarBackground(.hidden, for: .navigationBar)
-                .refreshable { await loadRewards() }
-                .navigationDestination(isPresented: $showSpinWheel) {
-                    SpinWheelView()
-                }
+            }
+            .navigationTitle("奖励")
+            .toolbarBackground(.hidden, for: .navigationBar)
+            .refreshable { await loadRewards() }
+            .navigationDestination(isPresented: $showSpinWheel) {
+                SpinWheelView()
             }
         }
         .task { await loadRewards() }
