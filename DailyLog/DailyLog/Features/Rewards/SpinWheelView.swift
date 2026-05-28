@@ -168,6 +168,7 @@ struct SpinWheelView: View {
         // 原子检查：第一个 await 之前同步设置锁
         guard !isSpinning else { return }
         isSpinning = true
+        defer { isSpinning = false }
         highlightedIndex = 0
 
         // Start animation timer
@@ -197,14 +198,13 @@ struct SpinWheelView: View {
                 highlightedIndex = winIndex
             }
 
-            isSpinning = false
             spinResult = result
             showResultAlert = true
             await appState.refreshProfile()
         } catch {
             timer.invalidate()
             spinTimer = nil
-            isSpinning = false
+            await appState.refreshProfile()
             errorMessage = error.localizedDescription
             showError = true
         }
