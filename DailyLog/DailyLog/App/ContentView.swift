@@ -1,16 +1,20 @@
 import SwiftUI
 
 struct ContentView: View {
-    var body: some View {
-        VStack {
-            Text("DailyLog")
-                .font(.largeTitle)
-                .fontWeight(.bold)
-        }
-        .padding()
-    }
-}
+    @Environment(AppState.self) private var appState
 
-#Preview {
-    ContentView()
+    var body: some View {
+        Group {
+            if appState.isLoading {
+                ProgressView("加载中...")
+            } else if appState.isAuthenticated {
+                MainTabView()
+            } else {
+                LoginView()
+            }
+        }
+        .task {
+            await appState.restoreSession()
+        }
+    }
 }
