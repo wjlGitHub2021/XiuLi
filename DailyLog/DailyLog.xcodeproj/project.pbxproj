@@ -18,10 +18,14 @@
 		7AF5E09A5A8B2B5EE50641BA /* Colors.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2BF7FC68459BCB5A9301792 /* Colors.swift */; };
 		7C1230BB1E1784EDB104DAFF /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = F76285F6682183B52E8E429E /* User.swift */; };
 		93A4D91C3947DCCE0EEC61A2 /* TaskRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C29EDC51111B6E3B2667A796 /* TaskRowView.swift */; };
+		9C5FDA727AE5E6D14EB78297 /* FeedMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1CE81FC97C70C3263A82392 /* FeedMessage.swift */; };
 		9E3594A59C52A87BB65AA3A4 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 195688809888A8BBF04631E4 /* ProfileView.swift */; };
+		A0C167D9C24F2419039AEE17 /* FeedService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 532E358BE82A283EAE3D3456 /* FeedService.swift */; };
 		A59578B0640F2241DB56E331 /* CompleteTaskResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F36B6E491FF6EE4F023E428 /* CompleteTaskResponse.swift */; };
+		A5A3DEA649381DD3B4DC5DF3 /* FeedItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31CD2D78295CBC8228931DE /* FeedItemView.swift */; };
 		B95F2CD7C97A6920AEE9088C /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F410F5086881F076C520825 /* ContentView.swift */; };
 		BE1AB270308CDF84963901A2 /* TaskItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43E6633A5DDD59A1DE5DFC6D /* TaskItem.swift */; };
+		C52FA76294D9561899248881 /* FeedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C9FC12BA5D19D4B8F8EC5FC /* FeedView.swift */; };
 		C549B1ECEC81BD46177BF024 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE71AD088092AEA7C31A6421 /* AuthService.swift */; };
 		C7910A3AC7FB5768C42A8950 /* Spacing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41A7278F0D66EA877AE2D8B2 /* Spacing.swift */; };
 		D2FC8E9E4E304C0761AFD210 /* ProfileService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 182CFAADB49E339A7794ADAB /* ProfileService.swift */; };
@@ -39,11 +43,15 @@
 		3F36B6E491FF6EE4F023E428 /* CompleteTaskResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompleteTaskResponse.swift; sourceTree = "<group>"; };
 		41A7278F0D66EA877AE2D8B2 /* Spacing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spacing.swift; sourceTree = "<group>"; };
 		43E6633A5DDD59A1DE5DFC6D /* TaskItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskItem.swift; sourceTree = "<group>"; };
+		532E358BE82A283EAE3D3456 /* FeedService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedService.swift; sourceTree = "<group>"; };
 		648C8536C0347D877B73D013 /* TaskService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskService.swift; sourceTree = "<group>"; };
 		77A233878E65A42A3320ACCE /* CreateTaskSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateTaskSheet.swift; sourceTree = "<group>"; };
 		7A744B16B6F8D064303BA205 /* CoinTransaction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoinTransaction.swift; sourceTree = "<group>"; };
 		8C76F135591F5E62ACD7BE96 /* DailyLogApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyLogApp.swift; sourceTree = "<group>"; };
+		8C9FC12BA5D19D4B8F8EC5FC /* FeedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedView.swift; sourceTree = "<group>"; };
 		9F410F5086881F076C520825 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		A1CE81FC97C70C3263A82392 /* FeedMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedMessage.swift; sourceTree = "<group>"; };
+		A31CD2D78295CBC8228931DE /* FeedItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedItemView.swift; sourceTree = "<group>"; };
 		AD16E1E75F4E542826FCD3EE /* TodayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayView.swift; sourceTree = "<group>"; };
 		B0A084A592040F8115A35C39 /* Components.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Components.swift; sourceTree = "<group>"; };
 		B2B3771025FDEF4FEA604991 /* DailyLog.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = DailyLog.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -71,11 +79,21 @@
 		072A102EC82C2185D60AEAA3 /* Features */ = {
 			isa = PBXGroup;
 			children = (
+				0D51A85CC87927CD13F20E0F /* Feed */,
 				7398484AB32668E05CF5FB5B /* Login */,
 				3BB96A47E2C9D0323A7BC1D1 /* Profile */,
 				A2AE41B1985846CBF1AACEA5 /* Today */,
 			);
 			path = Features;
+			sourceTree = "<group>";
+		};
+		0D51A85CC87927CD13F20E0F /* Feed */ = {
+			isa = PBXGroup;
+			children = (
+				A31CD2D78295CBC8228931DE /* FeedItemView.swift */,
+				8C9FC12BA5D19D4B8F8EC5FC /* FeedView.swift */,
+			);
+			path = Feed;
 			sourceTree = "<group>";
 		};
 		3BB96A47E2C9D0323A7BC1D1 /* Profile */ = {
@@ -147,6 +165,7 @@
 			children = (
 				7A744B16B6F8D064303BA205 /* CoinTransaction.swift */,
 				3F36B6E491FF6EE4F023E428 /* CompleteTaskResponse.swift */,
+				A1CE81FC97C70C3263A82392 /* FeedMessage.swift */,
 				43E6633A5DDD59A1DE5DFC6D /* TaskItem.swift */,
 				F76285F6682183B52E8E429E /* User.swift */,
 			);
@@ -194,6 +213,7 @@
 			isa = PBXGroup;
 			children = (
 				DE71AD088092AEA7C31A6421 /* AuthService.swift */,
+				532E358BE82A283EAE3D3456 /* FeedService.swift */,
 				182CFAADB49E339A7794ADAB /* ProfileService.swift */,
 				648C8536C0347D877B73D013 /* TaskService.swift */,
 			);
@@ -281,6 +301,10 @@
 				B95F2CD7C97A6920AEE9088C /* ContentView.swift in Sources */,
 				5175F1FF88D78AEB176FAF59 /* CreateTaskSheet.swift in Sources */,
 				F4054F5D049ACF297C09CFD0 /* DailyLogApp.swift in Sources */,
+				A5A3DEA649381DD3B4DC5DF3 /* FeedItemView.swift in Sources */,
+				9C5FDA727AE5E6D14EB78297 /* FeedMessage.swift in Sources */,
+				A0C167D9C24F2419039AEE17 /* FeedService.swift in Sources */,
+				C52FA76294D9561899248881 /* FeedView.swift in Sources */,
 				354A28D7A2F66C0DC80E6FDF /* LoginView.swift in Sources */,
 				3AFD13BFF0AC8AFAE54FAE75 /* MainTabView.swift in Sources */,
 				D2FC8E9E4E304C0761AFD210 /* ProfileService.swift in Sources */,
