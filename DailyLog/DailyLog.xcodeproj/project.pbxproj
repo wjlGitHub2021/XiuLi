@@ -34,6 +34,7 @@
 		D2FC8E9E4E304C0761AFD210 /* ProfileService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 182CFAADB49E339A7794ADAB /* ProfileService.swift */; };
 		D87FC09BEBAE2B7930BAAC2C /* TaskService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 648C8536C0347D877B73D013 /* TaskService.swift */; };
 		F4054F5D049ACF297C09CFD0 /* DailyLogApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C76F135591F5E62ACD7BE96 /* DailyLogApp.swift */; };
+		F6C29345281E44049A610D80 /* CalendarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDD937D3FC6277E3EF206047 /* CalendarView.swift */; };
 		F8E2039B8DB76F0606B64C5C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 12DC5CA37A3921987CA8E6DC /* Assets.xcassets */; };
 		FB166EA87BC819A6E1FC0274 /* SpinWheelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFC59D23B475AF2F80D456BE /* SpinWheelView.swift */; };
 		FD3FE02183E51C4073F0A0E0 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33AF9A60017ED218AC29613A /* AppState.swift */; };
@@ -72,6 +73,7 @@
 		DFC59D23B475AF2F80D456BE /* SpinWheelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpinWheelView.swift; sourceTree = "<group>"; };
 		E56CDC6F6CF2FE3F6CB6644F /* SupabaseClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseClient.swift; sourceTree = "<group>"; };
 		F76285F6682183B52E8E429E /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
+		FDD937D3FC6277E3EF206047 /* CalendarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -173,6 +175,7 @@
 		A2AE41B1985846CBF1AACEA5 /* Today */ = {
 			isa = PBXGroup;
 			children = (
+				FDD937D3FC6277E3EF206047 /* CalendarView.swift */,
 				77A233878E65A42A3320ACCE /* CreateTaskSheet.swift */,
 				C29EDC51111B6E3B2667A796 /* TaskRowView.swift */,
 				AD16E1E75F4E542826FCD3EE /* TodayView.swift */,
@@ -317,6 +320,7 @@
 			files = (
 				FD3FE02183E51C4073F0A0E0 /* AppState.swift in Sources */,
 				C549B1ECEC81BD46177BF024 /* AuthService.swift in Sources */,
+				F6C29345281E44049A610D80 /* CalendarView.swift in Sources */,
 				575D7FE4935513A86CF7BBE1 /* CoinTransaction.swift in Sources */,
 				7AF5E09A5A8B2B5EE50641BA /* Colors.swift in Sources */,
 				A59578B0640F2241DB56E331 /* CompleteTaskResponse.swift in Sources */,

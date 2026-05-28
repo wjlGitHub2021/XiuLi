@@ -46,6 +46,13 @@ final class TaskService {
             .value
     }
 
+    func fetchAllTasks(userId: UUID, date: Date) async throws -> (daily: [TaskItem], weekly: [TaskItem], monthly: [TaskItem]) {
+        async let d = fetchTasks(userId: userId, taskType: .daily, date: date)
+        async let w = fetchTasks(userId: userId, taskType: .weekly, date: date)
+        async let m = fetchTasks(userId: userId, taskType: .monthly, date: date)
+        return try await (daily: d, weekly: w, monthly: m)
+    }
+
     func completeTask(taskId: UUID) async throws -> CompleteTaskResponse {
         return try await client.rpc(
             "complete_task",

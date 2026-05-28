@@ -82,23 +82,33 @@ struct CreateTaskSheet: View {
         errorMessage = nil
         defer { isLoading = false }
 
-        let params = CreateTaskParams(
-            userId: userId,
-            title: title,
-            notes: notes.isEmpty ? nil : notes,
-            taskType: taskType.rawValue,
-            taskDate: Self.dateFormatter.string(from: taskDate),
-            expireDate: hasExpireDate ? Self.dateFormatter.string(from: expireDate ?? taskDate) : nil,
-            coinsEarned: coinsEarned,
-            orderInDay: 0
-        )
-
         do {
+            // Enforce 5 active task limit per type
+            let existing = try await taskService.fetchTasks(userId: userId, taskType: taskType, date: taskDate)
+            let pendingCount = existing.filter { $0.status == .pending }.count
+            if pendingCount >= 5 {
+                errorMessage = "\(taskType.displayName)最多同时存在5个待完成任务"
+                return
+            }
+
+            let params = CreateTaskParams(
+                userId: userId,
+                title: title,
+                notes: notes.isEmpty ? nil : notes,
+                taskType: taskType.rawValue,
+                taskDate: Self.dateFormatter.string(from: taskDate),
+                expireDate: hasExpireDate ? Self.dateFormatter.string(from: expireDate ?? taskDate) : nil,
+                coinsEarned: coinsEarned,
+                orderInDay: 0
+            )
+
             let newTask = try await taskService.createTask(params)
             onCreated(newTask)
             dismiss()
         } catch {
-            errorMessage = "创建失败，请重试"
+            if errorMessage == nil {
+                errorMessage = "创建失败，请重试"
+            }
         }
     }
 }

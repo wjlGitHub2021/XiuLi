@@ -2,43 +2,43 @@ import SwiftUI
 
 struct TodayView: View {
     @Environment(AppState.self) private var appState
-    @State private var selectedType: TaskType = .daily
-    @State private var tasks: [TaskItem] = []
+    @State private var selectedDate: Date = Date()
+    @State private var dailyTasks: [TaskItem] = []
+    @State private var weeklyTasks: [TaskItem] = []
+    @State private var monthlyTasks: [TaskItem] = []
     @State private var isLoading = false
     @State private var errorMessage: String?
     @State private var showCreateSheet = false
 
     private let taskService = TaskService()
 
+    private var allTasksEmpty: Bool {
+        dailyTasks.isEmpty && weeklyTasks.isEmpty && monthlyTasks.isEmpty
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: Spacing.md) {
-                    Picker("任务类型", selection: $selectedType) {
-                        ForEach(TaskType.allCases, id: \.self) { type in
-                            Text(type.displayName).tag(type)
-                        }
-                    }
-                    .pickerStyle(.segmented)
-                    .padding(.horizontal, Spacing.md)
+                    CalendarView(selectedDate: $selectedDate)
 
                     if let errorMessage {
                         DLErrorBanner(message: errorMessage)
                             .padding(.horizontal, Spacing.md)
                     }
 
-                    if isLoading && tasks.isEmpty {
+                    if isLoading && allTasksEmpty {
                         ProgressView()
                             .padding(.top, 100)
-                    } else if tasks.isEmpty {
-                        DLEmptyState(message: emptyMessage)
+                    } else if allTasksEmpty {
+                        DLEmptyState(message: "今日无任务")
                     } else {
-                        taskList
+                        taskSections
                     }
                 }
                 .padding(.vertical, Spacing.sm)
             }
-            .refreshable { await loadTasks() }
+            .refreshable { await loadAllTasks() }
             .navigationTitle("今日")
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
@@ -52,14 +52,20 @@ struct TodayView: View {
                 }
             }
             .sheet(isPresented: $showCreateSheet) {
-                CreateTaskSheet(taskType: selectedType) { newTask in
-                    tasks.insert(newTask, at: 0)
+                CreateTaskSheet(taskType: .daily) { newTask in
+                    switch newTask.taskType {
+                    case .daily: dailyTasks.insert(newTask, at: 0)
+                    case .weekly: weeklyTasks.insert(newTask, at: 0)
+                    case .monthly: monthlyTasks.insert(newTask, at: 0)
+                    }
                 }
                 .environment(appState)
             }
         }
-        .task(id: selectedType) { await loadTasks() }
+        .task(id: selectedDate) { await loadAllTasks() }
     }
+
+    // MARK: - Coin Badge
 
     @ViewBuilder
     private var coinBadge: some View {
@@ -76,56 +82,83 @@ struct TodayView: View {
         }
     }
 
-    private var taskList: some View {
+    // MARK: - Task Sections
+
+    private var taskSections: some View {
         GlassEffectContainer(spacing: 8.0) {
-            VStack(spacing: Spacing.sm) {
-                ForEach(tasks) { task in
-                    TaskRowView(task: task) {
-                        Task { await completeTask(task) }
-                    }
-                    .padding(.horizontal, Spacing.md)
-                    .padding(.vertical, Spacing.sm)
-                    .glassEffect(.regular, in: .rect(cornerRadius: 16))
+            VStack(spacing: Spacing.md) {
+                if !dailyTasks.isEmpty {
+                    taskSection(title: "日任务", tasks: dailyTasks, type: .daily)
+                }
+                if !weeklyTasks.isEmpty {
+                    taskSection(title: "周任务", tasks: weeklyTasks, type: .weekly)
+                }
+                if !monthlyTasks.isEmpty {
+                    taskSection(title: "月任务", tasks: monthlyTasks, type: .monthly)
                 }
             }
             .padding(.horizontal, Spacing.md)
         }
     }
 
-    private var emptyMessage: String {
-        switch selectedType {
-        case .daily: return "今天还没有日任务"
-        case .weekly: return "本周还没有周任务"
-        case .monthly: return "本月还没有月任务"
+    @ViewBuilder
+    private func taskSection(title: String, tasks: [TaskItem], type: TaskType) -> some View {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
+            Text(title)
+                .font(.subheadline.bold())
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, Spacing.xs)
+            ForEach(tasks) { task in
+                TaskRowView(task: task) {
+                    Task { await completeTask(task, type: type) }
+                }
+                .padding(.horizontal, Spacing.md)
+                .padding(.vertical, Spacing.sm)
+                .glassEffect(.regular, in: .rect(cornerRadius: 16))
+            }
         }
     }
 
-    private func loadTasks() async {
+    // MARK: - Data Loading
+
+    private func loadAllTasks() async {
         guard let userId = appState.currentUser?.id else { return }
         isLoading = true
         errorMessage = nil
         defer { isLoading = false }
 
         do {
-            tasks = try await taskService.fetchTasks(
-                userId: userId, taskType: selectedType, date: Date()
-            )
+            let result = try await taskService.fetchAllTasks(userId: userId, date: selectedDate)
+            dailyTasks = result.daily
+            weeklyTasks = result.weekly
+            monthlyTasks = result.monthly
         } catch {
             errorMessage = "加载任务失败，下拉刷新重试"
         }
     }
 
-    private func completeTask(_ task: TaskItem) async {
+    private func completeTask(_ task: TaskItem, type: TaskType) async {
         errorMessage = nil
         do {
             let response = try await taskService.completeTask(taskId: task.id)
-            if let index = tasks.firstIndex(where: { $0.id == task.id }) {
-                tasks[index] = response.task
+            switch type {
+            case .daily:
+                if let index = dailyTasks.firstIndex(where: { $0.id == task.id }) {
+                    dailyTasks[index] = response.task
+                }
+            case .weekly:
+                if let index = weeklyTasks.firstIndex(where: { $0.id == task.id }) {
+                    weeklyTasks[index] = response.task
+                }
+            case .monthly:
+                if let index = monthlyTasks.firstIndex(where: { $0.id == task.id }) {
+                    monthlyTasks[index] = response.task
+                }
             }
             await appState.refreshProfile()
         } catch {
             errorMessage = "完成任务失败，请重试"
-            await loadTasks()
+            await loadAllTasks()
         }
     }
 }
