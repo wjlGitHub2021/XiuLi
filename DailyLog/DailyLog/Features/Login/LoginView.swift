@@ -64,7 +64,14 @@ struct LoginView: View {
                             .onSubmit { Task { await login() } }
 
                             Button {
+                                let wasFocused = focusedField == .password
                                 isPasswordVisible.toggle()
+                                if wasFocused {
+                                    Task { @MainActor in
+                                        try? await Task.sleep(for: .milliseconds(50))
+                                        focusedField = .password
+                                    }
+                                }
                             } label: {
                                 Image(systemName: isPasswordVisible ? "eye.slash" : "eye")
                                     .foregroundStyle(.secondary)

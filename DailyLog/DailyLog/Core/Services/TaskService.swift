@@ -59,10 +59,10 @@ final class TaskService {
     }
 
     func fetchAllTasks(userId: UUID, date: Date) async throws -> (daily: [TaskItem], weekly: [TaskItem], monthly: [TaskItem]) {
-        let d = try await fetchTasks(userId: userId, taskType: .daily, date: date)
-        let w = try await fetchTasks(userId: userId, taskType: .weekly, date: date)
-        let m = try await fetchTasks(userId: userId, taskType: .monthly, date: date)
-        return (daily: d, weekly: w, monthly: m)
+        async let d = fetchTasks(userId: userId, taskType: .daily, date: date)
+        async let w = fetchTasks(userId: userId, taskType: .weekly, date: date)
+        async let m = fetchTasks(userId: userId, taskType: .monthly, date: date)
+        return try await (daily: d, weekly: w, monthly: m)
     }
 
     func completeTask(taskId: UUID) async throws -> CompleteTaskResponse {
