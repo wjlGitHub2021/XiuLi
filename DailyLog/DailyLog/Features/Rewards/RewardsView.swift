@@ -22,22 +22,26 @@ struct RewardsView: View {
     }
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                GlassEffectContainer(spacing: 16.0) {
-                    VStack(spacing: Spacing.md) {
-                        coinBalanceHeader
-                        spinWheelCard
-                        directRewardsSection
+        ZStack {
+            DLBackground()
+            NavigationStack {
+                ScrollView {
+                    GlassEffectContainer(spacing: 16.0) {
+                        VStack(spacing: Spacing.md) {
+                            coinBalanceHeader
+                            spinWheelCard
+                            directRewardsSection
+                        }
+                        .padding(.horizontal, Spacing.screenHorizontal)
+                        .padding(.vertical, Spacing.sm)
                     }
-                    .padding(.horizontal, Spacing.md)
-                    .padding(.vertical, Spacing.sm)
                 }
-            }
-            .navigationTitle("奖励")
-            .refreshable { await loadRewards() }
-            .navigationDestination(isPresented: $showSpinWheel) {
-                SpinWheelView()
+                .scrollContentBackground(.hidden)
+                .navigationTitle("奖励")
+                .refreshable { await loadRewards() }
+                .navigationDestination(isPresented: $showSpinWheel) {
+                    SpinWheelView()
+                }
             }
         }
         .task { await loadRewards() }
@@ -73,10 +77,10 @@ struct RewardsView: View {
             Spacer()
             Text("我的余额")
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.dlTextSecondary)
         }
         .padding(Spacing.md)
-        .glassEffect(.regular.tint(.yellow), in: .rect(cornerRadius: 20))
+        .glassEffect(.regular.tint(Color.dlCoin.opacity(0.32)), in: .rect(cornerRadius: CornerRadius.card))
     }
 
     private var spinWheelCard: some View {
@@ -84,13 +88,13 @@ struct RewardsView: View {
             HStack {
                 Image(systemName: "sparkles")
                     .font(.title2)
-                    .foregroundStyle(.purple)
+                    .foregroundStyle(Color.dlLavender)
                 Text("转盘抽奖")
                     .font(.headline)
                 Spacer()
                 Text("每次 10 金币")
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.dlTextSecondary)
             }
             Button {
                 showSpinWheel = true
@@ -103,33 +107,32 @@ struct RewardsView: View {
             .buttonStyle(.glass)
         }
         .padding(Spacing.md)
-        .glassEffect(.regular.tint(.purple), in: .rect(cornerRadius: 20))
+        .glassEffect(.regular.tint(Color.dlLavender.opacity(0.32)), in: .rect(cornerRadius: CornerRadius.card))
     }
 
     private var directRewardsSection: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
-            Text("直接兑换")
-                .font(.headline)
+            DLSectionHeader("直接兑换", icon: "gift")
                 .padding(.horizontal, Spacing.sm)
 
             if isLoading {
                 ProgressView()
                     .frame(maxWidth: .infinity)
                     .padding(Spacing.md)
-                    .glassEffect(.regular, in: .rect(cornerRadius: 16))
+                    .glassEffect(.regular, in: .rect(cornerRadius: CornerRadius.smallCard))
             } else if directRewards.isEmpty {
                 Text("暂无可兑换奖励")
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.dlTextSecondary)
                     .padding(Spacing.md)
                     .frame(maxWidth: .infinity)
-                    .glassEffect(.regular, in: .rect(cornerRadius: 16))
+                    .glassEffect(.regular, in: .rect(cornerRadius: CornerRadius.smallCard))
             } else {
                 VStack(spacing: Spacing.xs) {
                     ForEach(directRewards) { reward in
                         rewardRow(reward)
                     }
                 }
-                .glassEffect(.regular, in: .rect(cornerRadius: 16))
+                .glassEffect(.regular, in: .rect(cornerRadius: CornerRadius.smallCard))
             }
         }
     }
@@ -142,10 +145,11 @@ struct RewardsView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(reward.name)
                     .font(.body.bold())
+                    .foregroundStyle(Color.dlTextPrimary)
                 if let desc = reward.description {
                     Text(desc)
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Color.dlTextSecondary)
                 }
             }
             Spacer()
