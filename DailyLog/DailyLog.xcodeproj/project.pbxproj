@@ -15,6 +15,7 @@
 		3BB8DA841E6C33FE29393E42 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 57831C2B2137246D7B272C43 /* Supabase */; };
 		5175F1FF88D78AEB176FAF59 /* CreateTaskSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77A233878E65A42A3320ACCE /* CreateTaskSheet.swift */; };
 		51B844AF5668604BC1D4EED6 /* TodayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD16E1E75F4E542826FCD3EE /* TodayView.swift */; };
+		54A4C3B0AB5D55AE52C57665 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 698C1F573444259A2BC388D0 /* NotificationService.swift */; };
 		575D7FE4935513A86CF7BBE1 /* CoinTransaction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A744B16B6F8D064303BA205 /* CoinTransaction.swift */; };
 		68D18D30B9DDCF683F67F1D6 /* RewardsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FCDDB035845086FA39CAF0 /* RewardsView.swift */; };
 		7AF5E09A5A8B2B5EE50641BA /* Colors.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2BF7FC68459BCB5A9301792 /* Colors.swift */; };
@@ -49,6 +50,7 @@
 		43E6633A5DDD59A1DE5DFC6D /* TaskItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskItem.swift; sourceTree = "<group>"; };
 		532E358BE82A283EAE3D3456 /* FeedService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedService.swift; sourceTree = "<group>"; };
 		648C8536C0347D877B73D013 /* TaskService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskService.swift; sourceTree = "<group>"; };
+		698C1F573444259A2BC388D0 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
 		77A233878E65A42A3320ACCE /* CreateTaskSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateTaskSheet.swift; sourceTree = "<group>"; };
 		7A744B16B6F8D064303BA205 /* CoinTransaction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoinTransaction.swift; sourceTree = "<group>"; };
 		8C76F135591F5E62ACD7BE96 /* DailyLogApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyLogApp.swift; sourceTree = "<group>"; };
@@ -233,6 +235,7 @@
 			children = (
 				DE71AD088092AEA7C31A6421 /* AuthService.swift */,
 				532E358BE82A283EAE3D3456 /* FeedService.swift */,
+				698C1F573444259A2BC388D0 /* NotificationService.swift */,
 				182CFAADB49E339A7794ADAB /* ProfileService.swift */,
 				D32895EDAF2483CA4F26E5E5 /* RewardService.swift */,
 				648C8536C0347D877B73D013 /* TaskService.swift */,
@@ -327,6 +330,7 @@
 				C52FA76294D9561899248881 /* FeedView.swift in Sources */,
 				354A28D7A2F66C0DC80E6FDF /* LoginView.swift in Sources */,
 				3AFD13BFF0AC8AFAE54FAE75 /* MainTabView.swift in Sources */,
+				54A4C3B0AB5D55AE52C57665 /* NotificationService.swift in Sources */,
 				D2FC8E9E4E304C0761AFD210 /* ProfileService.swift in Sources */,
 				9E3594A59C52A87BB65AA3A4 /* ProfileView.swift in Sources */,
 				02258504811F981D6A621E64 /* Reward.swift in Sources */,

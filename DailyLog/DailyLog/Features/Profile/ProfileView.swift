@@ -9,6 +9,7 @@ struct ProfileView: View {
     @State private var selectedPhoto: PhotosPickerItem?
     @State private var isUploadingAvatar = false
     @State private var streak: Int = 0
+    @State private var pushEnabled: Bool = false
 
     private let profileService = ProfileService()
 
@@ -150,12 +151,14 @@ struct ProfileView: View {
             HStack {
                 Label("消息推送", systemImage: "bell")
                 Spacer()
-                Text("稍后开放")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                Toggle("", isOn: $pushEnabled)
+                    .labelsHidden()
             }
             .padding(Spacing.md)
             .glassEffect(.regular, in: .rect(cornerRadius: 16))
+            .onChange(of: pushEnabled) { _, newValue in
+                Task { await togglePush(newValue) }
+            }
 
             Button(role: .destructive) {
                 showLogoutConfirm = true
@@ -177,6 +180,24 @@ struct ProfileView: View {
         await appState.refreshProfile()
         transactions = (try? await profileService.fetchRecentTransactions(userId: userId)) ?? []
         streak = (try? await profileService.fetchStreak(userId: userId)) ?? 0
+        pushEnabled = appState.currentUser?.pushEnabled ?? false
+    }
+
+    private func togglePush(_ enabled: Bool) async {
+        let service = NotificationService()
+        if enabled {
+            let granted = await service.requestPermission()
+            if !granted {
+                pushEnabled = false
+                return
+            }
+        }
+        guard let userId = appState.currentUser?.id else { return }
+        try? await AppSupabase.client.from("users")
+            .update(["push_enabled": enabled])
+            .eq("id", value: userId.uuidString)
+            .execute()
+        await appState.refreshProfile()
     }
 
     private func handlePhotoSelection(_ item: PhotosPickerItem?) async {
