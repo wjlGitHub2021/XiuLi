@@ -8,19 +8,24 @@
 
 /* Begin PBXBuildFile section */
 		02258504811F981D6A621E64 /* Reward.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C5C9181F82EAAE17EE56682 /* Reward.swift */; };
+		038B510B87663D4AAD385645 /* DLPrimaryButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6059F4D37B4AD84F40F12254 /* DLPrimaryButton.swift */; };
+		067A52FAE9135E733967D2A4 /* DLBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA5E56653574406745795340 /* DLBackground.swift */; };
 		354A28D7A2F66C0DC80E6FDF /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D74A2C973BCCA0CB9902F8B0 /* LoginView.swift */; };
 		3627C0491BC4CE1B4C543A46 /* SupabaseClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = E56CDC6F6CF2FE3F6CB6644F /* SupabaseClient.swift */; };
 		37BAA2A8C61EE10446FC7521 /* Components.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0A084A592040F8115A35C39 /* Components.swift */; };
 		3AFD13BFF0AC8AFAE54FAE75 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17C3EAAAC5B09183B000FE9 /* MainTabView.swift */; };
 		3BB8DA841E6C33FE29393E42 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 57831C2B2137246D7B272C43 /* Supabase */; };
 		3FD1BBB564E4EFD2E8013739 /* ImagePickers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62433AC4B89740AF8472C64F /* ImagePickers.swift */; };
+		4D448F2AC8B5862A9FF618AB /* CornerRadius.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10D3BC5556078E2CC0CF935A /* CornerRadius.swift */; };
 		5175F1FF88D78AEB176FAF59 /* CreateTaskSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77A233878E65A42A3320ACCE /* CreateTaskSheet.swift */; };
 		51B844AF5668604BC1D4EED6 /* TodayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD16E1E75F4E542826FCD3EE /* TodayView.swift */; };
 		54A4C3B0AB5D55AE52C57665 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 698C1F573444259A2BC388D0 /* NotificationService.swift */; };
 		575D7FE4935513A86CF7BBE1 /* CoinTransaction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A744B16B6F8D064303BA205 /* CoinTransaction.swift */; };
 		68D18D30B9DDCF683F67F1D6 /* RewardsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FCDDB035845086FA39CAF0 /* RewardsView.swift */; };
+		6C6623254AAC0C4124DB1252 /* DLGlassBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9EDB8F0EFADA6B906F55055 /* DLGlassBadge.swift */; };
 		7AF5E09A5A8B2B5EE50641BA /* Colors.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2BF7FC68459BCB5A9301792 /* Colors.swift */; };
 		7C1230BB1E1784EDB104DAFF /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = F76285F6682183B52E8E429E /* User.swift */; };
+		812A34945541C2E5AB543C66 /* DLSectionHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44B67973C09950966E571680 /* DLSectionHeader.swift */; };
 		93A4D91C3947DCCE0EEC61A2 /* TaskRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C29EDC51111B6E3B2667A796 /* TaskRowView.swift */; };
 		9C5FDA727AE5E6D14EB78297 /* FeedMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1CE81FC97C70C3263A82392 /* FeedMessage.swift */; };
 		9E3594A59C52A87BB65AA3A4 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 195688809888A8BBF04631E4 /* ProfileView.swift */; };
@@ -35,6 +40,7 @@
 		C7910A3AC7FB5768C42A8950 /* Spacing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41A7278F0D66EA877AE2D8B2 /* Spacing.swift */; };
 		D2FC8E9E4E304C0761AFD210 /* ProfileService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 182CFAADB49E339A7794ADAB /* ProfileService.swift */; };
 		D87FC09BEBAE2B7930BAAC2C /* TaskService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 648C8536C0347D877B73D013 /* TaskService.swift */; };
+		E027302742F1600CE1898EFE /* DLGlassCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A3DFF74D2C2DE2B30374752 /* DLGlassCard.swift */; };
 		F4054F5D049ACF297C09CFD0 /* DailyLogApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C76F135591F5E62ACD7BE96 /* DailyLogApp.swift */; };
 		F6C29345281E44049A610D80 /* CalendarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDD937D3FC6277E3EF206047 /* CalendarView.swift */; };
 		F8E2039B8DB76F0606B64C5C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 12DC5CA37A3921987CA8E6DC /* Assets.xcassets */; };
@@ -44,14 +50,18 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		10D3BC5556078E2CC0CF935A /* CornerRadius.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CornerRadius.swift; sourceTree = "<group>"; };
 		12DC5CA37A3921987CA8E6DC /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		182CFAADB49E339A7794ADAB /* ProfileService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileService.swift; sourceTree = "<group>"; };
 		195688809888A8BBF04631E4 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
+		1A3DFF74D2C2DE2B30374752 /* DLGlassCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DLGlassCard.swift; sourceTree = "<group>"; };
 		33AF9A60017ED218AC29613A /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
 		3F36B6E491FF6EE4F023E428 /* CompleteTaskResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompleteTaskResponse.swift; sourceTree = "<group>"; };
 		41A7278F0D66EA877AE2D8B2 /* Spacing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spacing.swift; sourceTree = "<group>"; };
 		43E6633A5DDD59A1DE5DFC6D /* TaskItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskItem.swift; sourceTree = "<group>"; };
+		44B67973C09950966E571680 /* DLSectionHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DLSectionHeader.swift; sourceTree = "<group>"; };
 		532E358BE82A283EAE3D3456 /* FeedService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedService.swift; sourceTree = "<group>"; };
+		6059F4D37B4AD84F40F12254 /* DLPrimaryButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DLPrimaryButton.swift; sourceTree = "<group>"; };
 		62433AC4B89740AF8472C64F /* ImagePickers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePickers.swift; sourceTree = "<group>"; };
 		648C8536C0347D877B73D013 /* TaskService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskService.swift; sourceTree = "<group>"; };
 		698C1F573444259A2BC388D0 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
@@ -68,6 +78,7 @@
 		AD16E1E75F4E542826FCD3EE /* TodayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayView.swift; sourceTree = "<group>"; };
 		B0A084A592040F8115A35C39 /* Components.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Components.swift; sourceTree = "<group>"; };
 		B2B3771025FDEF4FEA604991 /* DailyLog.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = DailyLog.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		BA5E56653574406745795340 /* DLBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DLBackground.swift; sourceTree = "<group>"; };
 		C17C3EAAAC5B09183B000FE9 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
 		C29EDC51111B6E3B2667A796 /* TaskRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskRowView.swift; sourceTree = "<group>"; };
 		C2BF7FC68459BCB5A9301792 /* Colors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Colors.swift; sourceTree = "<group>"; };
@@ -77,6 +88,7 @@
 		DFC59D23B475AF2F80D456BE /* SpinWheelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpinWheelView.swift; sourceTree = "<group>"; };
 		E56CDC6F6CF2FE3F6CB6644F /* SupabaseClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseClient.swift; sourceTree = "<group>"; };
 		F76285F6682183B52E8E429E /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
+		F9EDB8F0EFADA6B906F55055 /* DLGlassBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DLGlassBadge.swift; sourceTree = "<group>"; };
 		FDD937D3FC6277E3EF206047 /* CalendarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -234,6 +246,12 @@
 			children = (
 				C2BF7FC68459BCB5A9301792 /* Colors.swift */,
 				B0A084A592040F8115A35C39 /* Components.swift */,
+				10D3BC5556078E2CC0CF935A /* CornerRadius.swift */,
+				BA5E56653574406745795340 /* DLBackground.swift */,
+				F9EDB8F0EFADA6B906F55055 /* DLGlassBadge.swift */,
+				1A3DFF74D2C2DE2B30374752 /* DLGlassCard.swift */,
+				6059F4D37B4AD84F40F12254 /* DLPrimaryButton.swift */,
+				44B67973C09950966E571680 /* DLSectionHeader.swift */,
 				41A7278F0D66EA877AE2D8B2 /* Spacing.swift */,
 			);
 			path = DesignSystem;
@@ -332,7 +350,13 @@
 				A59578B0640F2241DB56E331 /* CompleteTaskResponse.swift in Sources */,
 				37BAA2A8C61EE10446FC7521 /* Components.swift in Sources */,
 				B95F2CD7C97A6920AEE9088C /* ContentView.swift in Sources */,
+				4D448F2AC8B5862A9FF618AB /* CornerRadius.swift in Sources */,
 				5175F1FF88D78AEB176FAF59 /* CreateTaskSheet.swift in Sources */,
+				067A52FAE9135E733967D2A4 /* DLBackground.swift in Sources */,
+				6C6623254AAC0C4124DB1252 /* DLGlassBadge.swift in Sources */,
+				E027302742F1600CE1898EFE /* DLGlassCard.swift in Sources */,
+				038B510B87663D4AAD385645 /* DLPrimaryButton.swift in Sources */,
+				812A34945541C2E5AB543C66 /* DLSectionHeader.swift in Sources */,
 				F4054F5D049ACF297C09CFD0 /* DailyLogApp.swift in Sources */,
 				A5A3DEA649381DD3B4DC5DF3 /* FeedItemView.swift in Sources */,
 				9C5FDA727AE5E6D14EB78297 /* FeedMessage.swift in Sources */,
