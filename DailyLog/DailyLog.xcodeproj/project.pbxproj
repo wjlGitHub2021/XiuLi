@@ -21,6 +21,8 @@
 		51B844AF5668604BC1D4EED6 /* TodayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD16E1E75F4E542826FCD3EE /* TodayView.swift */; };
 		54A4C3B0AB5D55AE52C57665 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 698C1F573444259A2BC388D0 /* NotificationService.swift */; };
 		575D7FE4935513A86CF7BBE1 /* CoinTransaction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A744B16B6F8D064303BA205 /* CoinTransaction.swift */; };
+		5A7D11627A7C88138A87C2EC /* DLSkeletonRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = B824C56AAD674FDB7F0FA838 /* DLSkeletonRow.swift */; };
+		6221D769937DD47806F531BE /* DLPermissionDeniedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CF285CAAC224FD0DA10618A /* DLPermissionDeniedView.swift */; };
 		68D18D30B9DDCF683F67F1D6 /* RewardsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FCDDB035845086FA39CAF0 /* RewardsView.swift */; };
 		6C6623254AAC0C4124DB1252 /* DLGlassBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9EDB8F0EFADA6B906F55055 /* DLGlassBadge.swift */; };
 		7AF5E09A5A8B2B5EE50641BA /* Colors.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2BF7FC68459BCB5A9301792 /* Colors.swift */; };
@@ -50,6 +52,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		0CF285CAAC224FD0DA10618A /* DLPermissionDeniedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DLPermissionDeniedView.swift; sourceTree = "<group>"; };
 		10D3BC5556078E2CC0CF935A /* CornerRadius.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CornerRadius.swift; sourceTree = "<group>"; };
 		12DC5CA37A3921987CA8E6DC /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		182CFAADB49E339A7794ADAB /* ProfileService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileService.swift; sourceTree = "<group>"; };
@@ -78,6 +81,7 @@
 		AD16E1E75F4E542826FCD3EE /* TodayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayView.swift; sourceTree = "<group>"; };
 		B0A084A592040F8115A35C39 /* Components.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Components.swift; sourceTree = "<group>"; };
 		B2B3771025FDEF4FEA604991 /* DailyLog.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = DailyLog.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B824C56AAD674FDB7F0FA838 /* DLSkeletonRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DLSkeletonRow.swift; sourceTree = "<group>"; };
 		BA5E56653574406745795340 /* DLBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DLBackground.swift; sourceTree = "<group>"; };
 		C17C3EAAAC5B09183B000FE9 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
 		C29EDC51111B6E3B2667A796 /* TaskRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskRowView.swift; sourceTree = "<group>"; };
@@ -250,8 +254,10 @@
 				BA5E56653574406745795340 /* DLBackground.swift */,
 				F9EDB8F0EFADA6B906F55055 /* DLGlassBadge.swift */,
 				1A3DFF74D2C2DE2B30374752 /* DLGlassCard.swift */,
+				0CF285CAAC224FD0DA10618A /* DLPermissionDeniedView.swift */,
 				6059F4D37B4AD84F40F12254 /* DLPrimaryButton.swift */,
 				44B67973C09950966E571680 /* DLSectionHeader.swift */,
+				B824C56AAD674FDB7F0FA838 /* DLSkeletonRow.swift */,
 				41A7278F0D66EA877AE2D8B2 /* Spacing.swift */,
 			);
 			path = DesignSystem;
@@ -355,8 +361,10 @@
 				067A52FAE9135E733967D2A4 /* DLBackground.swift in Sources */,
 				6C6623254AAC0C4124DB1252 /* DLGlassBadge.swift in Sources */,
 				E027302742F1600CE1898EFE /* DLGlassCard.swift in Sources */,
+				6221D769937DD47806F531BE /* DLPermissionDeniedView.swift in Sources */,
 				038B510B87663D4AAD385645 /* DLPrimaryButton.swift in Sources */,
 				812A34945541C2E5AB543C66 /* DLSectionHeader.swift in Sources */,
+				5A7D11627A7C88138A87C2EC /* DLSkeletonRow.swift in Sources */,
 				F4054F5D049ACF297C09CFD0 /* DailyLogApp.swift in Sources */,
 				A5A3DEA649381DD3B4DC5DF3 /* FeedItemView.swift in Sources */,
 				9C5FDA727AE5E6D14EB78297 /* FeedMessage.swift in Sources */,

@@ -1,19 +1,66 @@
 import SwiftUI
 
 struct DLEmptyState: View {
-    let message: String
+    let icon: String
+    let title: String
+    let subtitle: String?
+    let actionTitle: String?
+    let action: (() -> Void)?
+
+    init(icon: String = "tray",
+         title: String,
+         subtitle: String? = nil,
+         actionTitle: String? = nil,
+         action: (() -> Void)? = nil) {
+        self.icon = icon
+        self.title = title
+        self.subtitle = subtitle
+        self.actionTitle = actionTitle
+        self.action = action
+    }
+
+    // 兼容旧调用 DLEmptyState(message:)
+    init(message: String) {
+        self.init(icon: "tray", title: message, subtitle: nil, actionTitle: nil, action: nil)
+    }
 
     var body: some View {
         VStack(spacing: Spacing.md) {
-            Image(systemName: "tray")
-                .font(.system(size: 48))
-                .foregroundStyle(.secondary)
-            Text(message)
-                .font(.body)
-                .foregroundStyle(.secondary)
+            ZStack {
+                Circle()
+                    .fill(Color.dlLavender.opacity(0.18))
+                    .frame(width: 96, height: 96)
+                Image(systemName: icon)
+                    .font(.system(size: 40, weight: .semibold))
+                    .foregroundStyle(Color.dlLavender)
+            }
+            VStack(spacing: Spacing.xs) {
+                Text(title)
+                    .font(.title3.bold())
+                    .foregroundStyle(Color.dlTextPrimary)
+                if let subtitle {
+                    Text(subtitle)
+                        .font(.subheadline)
+                        .foregroundStyle(Color.dlTextSecondary)
+                        .multilineTextAlignment(.center)
+                }
+            }
+            if let actionTitle, let action {
+                Button(action: action) {
+                    Text(actionTitle)
+                        .font(.subheadline.weight(.semibold))
+                        .padding(.horizontal, Spacing.lg)
+                        .padding(.vertical, Spacing.sm)
+                }
+                .buttonStyle(.glassProminent)
+                .tint(Color.dlLavender)
+            }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding(Spacing.lg)
+        .padding(Spacing.xl)
+        .frame(maxWidth: .infinity)
+        .glassEffect(.regular, in: .rect(cornerRadius: CornerRadius.panel))
+        .padding(.horizontal, Spacing.screenHorizontal)
+        .padding(.vertical, Spacing.lg)
     }
 }
 
