@@ -1,10 +1,14 @@
 import SwiftUI
+import PhotosUI
 
 struct ProfileView: View {
     @Environment(AppState.self) private var appState
     @State private var transactions: [CoinTransaction] = []
     @State private var isLoading = false
     @State private var showLogoutConfirm = false
+    @State private var selectedPhoto: PhotosPickerItem?
+    @State private var isUploadingAvatar = false
+    @State private var streak: Int = 0
 
     private let profileService = ProfileService()
 
@@ -33,11 +37,41 @@ struct ProfileView: View {
         .task { await loadData() }
     }
 
+    private var avatarView: some View {
+        Group {
+            if let avatarUrl = appState.currentUser?.avatarUrl, let url = URL(string: avatarUrl) {
+                AsyncImage(url: url) { image in
+                    image.resizable().scaledToFill()
+                } placeholder: {
+                    Image(systemName: "person.circle.fill")
+                        .font(.system(size: 56))
+                        .foregroundStyle(.secondary)
+                }
+                .frame(width: 56, height: 56)
+                .clipShape(Circle())
+            } else {
+                Image(systemName: "person.circle.fill")
+                    .font(.system(size: 56))
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .overlay {
+            if isUploadingAvatar {
+                ProgressView()
+                    .frame(width: 56, height: 56)
+                    .background(.ultraThinMaterial, in: Circle())
+            }
+        }
+    }
+
     private var profileHeader: some View {
         HStack(spacing: Spacing.md) {
-            Image(systemName: "person.circle.fill")
-                .font(.system(size: 56))
-                .foregroundStyle(.secondary)
+            PhotosPicker(selection: $selectedPhoto, matching: .images) {
+                avatarView
+            }
+            .onChange(of: selectedPhoto) { _, newValue in
+                Task { await handlePhotoSelection(newValue) }
+            }
             VStack(alignment: .leading, spacing: Spacing.xs) {
                 Text(appState.currentUser?.nickname ?? "加载中")
                     .font(.title2.bold())
@@ -55,11 +89,20 @@ struct ProfileView: View {
     }
 
     private var statsSection: some View {
-        HStack {
-            Label("完成任务", systemImage: "checkmark.circle")
-            Spacer()
-            Text("\(appState.currentUser?.totalCompleted ?? 0) 次")
-                .foregroundStyle(.secondary)
+        VStack(spacing: Spacing.sm) {
+            HStack {
+                Label("完成任务", systemImage: "checkmark.circle")
+                Spacer()
+                Text("\(appState.currentUser?.totalCompleted ?? 0) 次")
+                    .foregroundStyle(.secondary)
+            }
+            Divider()
+            HStack {
+                Label("连续打卡", systemImage: "flame")
+                Spacer()
+                Text("\(streak) 天")
+                    .foregroundStyle(.secondary)
+            }
         }
         .padding(Spacing.md)
         .glassEffect(.regular, in: .rect(cornerRadius: 16))
@@ -133,5 +176,17 @@ struct ProfileView: View {
         defer { isLoading = false }
         await appState.refreshProfile()
         transactions = (try? await profileService.fetchRecentTransactions(userId: userId)) ?? []
+        streak = (try? await profileService.fetchStreak(userId: userId)) ?? 0
+    }
+
+    private func handlePhotoSelection(_ item: PhotosPickerItem?) async {
+        guard let item, let userId = appState.currentUser?.id else { return }
+        guard let data = try? await item.loadTransferable(type: Data.self) else { return }
+        guard let uiImage = UIImage(data: data),
+              let jpegData = uiImage.jpegData(compressionQuality: 0.8) else { return }
+        isUploadingAvatar = true
+        defer { isUploadingAvatar = false }
+        _ = try? await profileService.uploadAvatar(userId: userId, imageData: jpegData)
+        await appState.refreshProfile()
     }
 }
