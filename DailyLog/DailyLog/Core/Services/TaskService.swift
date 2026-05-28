@@ -27,14 +27,26 @@ final class TaskService {
 
     func fetchTasks(userId: UUID, taskType: TaskType, date: Date) async throws -> [TaskItem] {
         let dateString = Self.dateFormatter.string(from: date)
-        return try await client.from("tasks")
-            .select()
-            .eq("user_id", value: userId.uuidString)
-            .eq("task_type", value: taskType.rawValue)
-            .eq("task_date", value: dateString)
-            .order("order_in_day")
-            .execute()
-            .value
+        if taskType == .daily {
+            return try await client.from("tasks")
+                .select()
+                .eq("user_id", value: userId.uuidString)
+                .eq("task_type", value: taskType.rawValue)
+                .eq("task_date", value: dateString)
+                .order("order_in_day")
+                .execute()
+                .value
+        } else {
+            return try await client.from("tasks")
+                .select()
+                .eq("user_id", value: userId.uuidString)
+                .eq("task_type", value: taskType.rawValue)
+                .lte("task_date", value: dateString)
+                .gte("expire_date", value: dateString)
+                .order("order_in_day")
+                .execute()
+                .value
+        }
     }
 
     func createTask(_ params: CreateTaskParams) async throws -> TaskItem {
@@ -46,11 +58,11 @@ final class TaskService {
             .value
     }
 
-    func fetchAllTasks(userId: UUID, date: Date) async throws -> (daily: [TaskItem], weekly: [TaskItem], monthly: [TaskItem]) {
-        async let d = fetchTasks(userId: userId, taskType: .daily, date: date)
-        async let w = fetchTasks(userId: userId, taskType: .weekly, date: date)
-        async let m = fetchTasks(userId: userId, taskType: .monthly, date: date)
-        return try await (daily: d, weekly: w, monthly: m)
+    func fetchAllTasks(userId: UUID, date: Date) async -> (daily: [TaskItem], weekly: [TaskItem], monthly: [TaskItem]) {
+        let d = (try? await fetchTasks(userId: userId, taskType: .daily, date: date)) ?? []
+        let w = (try? await fetchTasks(userId: userId, taskType: .weekly, date: date)) ?? []
+        let m = (try? await fetchTasks(userId: userId, taskType: .monthly, date: date)) ?? []
+        return (daily: d, weekly: w, monthly: m)
     }
 
     func completeTask(taskId: UUID) async throws -> CompleteTaskResponse {

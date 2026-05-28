@@ -5,12 +5,12 @@ struct CalendarView: View {
     @State private var isExpanded = false
     @State private var currentMonth: Date = Date()
 
-    private var calendar: Calendar {
+    private let calendar: Calendar = {
         var cal = Calendar(identifier: .gregorian)
-        cal.firstWeekday = 2 // Monday
+        cal.firstWeekday = 2
         cal.locale = Locale(identifier: "zh_CN")
         return cal
-    }
+    }()
 
     private let weekdaySymbols = ["一", "二", "三", "四", "五", "六", "日"]
 

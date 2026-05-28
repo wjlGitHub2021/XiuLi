@@ -138,14 +138,10 @@ struct TodayView: View {
         errorMessage = nil
         defer { isLoading = false }
 
-        do {
-            let result = try await taskService.fetchAllTasks(userId: userId, date: selectedDate)
-            dailyTasks = result.daily
-            weeklyTasks = result.weekly
-            monthlyTasks = result.monthly
-        } catch {
-            errorMessage = "加载任务失败，下拉刷新重试"
-        }
+        let result = await taskService.fetchAllTasks(userId: userId, date: selectedDate)
+        dailyTasks = result.daily
+        weeklyTasks = result.weekly
+        monthlyTasks = result.monthly
     }
 
     private func updateTask(_ task: TaskItem) {
@@ -156,5 +152,6 @@ struct TodayView: View {
         } else if let index = monthlyTasks.firstIndex(where: { $0.id == task.id }) {
             monthlyTasks[index] = task
         }
+        Task { await appState.refreshProfile() }
     }
 }
