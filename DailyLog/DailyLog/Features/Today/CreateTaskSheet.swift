@@ -33,28 +33,32 @@ struct CreateTaskSheet: View {
 
     var body: some View {
         NavigationStack {
-            Form {
-                Section("任务信息") {
-                    TextField("任务标题", text: $title)
-                    TextField("备注（可选）", text: $notes, axis: .vertical)
-                        .lineLimit(2...4)
-                }
+            ZStack {
+                DLBackground()
+                Form {
+                    Section("任务信息") {
+                        TextField("任务标题", text: $title)
+                        TextField("备注（可选）", text: $notes, axis: .vertical)
+                            .lineLimit(2...4)
+                    }
 
-                Section("任务设置") {
-                    Picker("任务类型", selection: $taskType) {
-                        ForEach(TaskType.allCases, id: \.self) { type in
-                            Text(type.displayName).tag(type)
+                    Section("任务设置") {
+                        Picker("任务类型", selection: $taskType) {
+                            ForEach(TaskType.allCases, id: \.self) { type in
+                                Text(type.displayName).tag(type)
+                            }
+                        }
+                        DatePicker("任务日期", selection: $taskDate, displayedComponents: .date)
+                        Stepper("金币奖励：\(coinsEarned)", value: $coinsEarned, in: 1...100)
+                    }
+
+                    if let errorMessage {
+                        Section {
+                            DLErrorBanner(message: errorMessage)
                         }
                     }
-                    DatePicker("任务日期", selection: $taskDate, displayedComponents: .date)
-                    Stepper("金币奖励：\(coinsEarned)", value: $coinsEarned, in: 1...100)
                 }
-
-                if let errorMessage {
-                    Section {
-                        DLErrorBanner(message: errorMessage)
-                    }
-                }
+                .scrollContentBackground(.hidden)
             }
             .navigationTitle("创建任务")
             .navigationBarTitleDisplayMode(.inline)
@@ -69,6 +73,7 @@ struct CreateTaskSheet: View {
                     .disabled(title.isEmpty || isLoading)
                 }
             }
+            .tint(Color.dlLavender)
         }
     }
 
