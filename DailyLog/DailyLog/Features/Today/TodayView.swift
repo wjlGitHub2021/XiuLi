@@ -145,6 +145,12 @@ struct TodayView: View {
             dailyTasks = result.daily
             weeklyTasks = result.weekly
             monthlyTasks = result.monthly
+        } catch is CancellationError {
+            // CancellationError 是良性的：SwiftUI 视图重组或 supabase-swift token 刷新
+            // 都会取消进行中的请求。下次 refresh/.task 触发会重新拉取，不应展示为"失败"。
+            return
+        } catch let error as URLError where error.code == .cancelled {
+            return
         } catch {
             errorMessage = "加载失败：\(error.localizedDescription)"
         }

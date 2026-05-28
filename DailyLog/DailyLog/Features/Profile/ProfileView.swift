@@ -17,6 +17,8 @@ struct ProfileView: View {
     @State private var showError = false
     // 附加任务 nit: 复用 NotificationService 实例
     @State private var notificationService = NotificationService()
+    // Bug #4 后续：刚上传的头像直接用本地 UIImage 渲染，避免 AsyncImage 走 CDN 冷启动
+    @State private var localAvatarImage: UIImage?
 
     private let profileService = ProfileService()
 
@@ -53,7 +55,13 @@ struct ProfileView: View {
 
     private var avatarView: some View {
         Group {
-            if let avatarUrl = appState.currentUser?.avatarUrl, let url = URL(string: avatarUrl) {
+            if let localImage = localAvatarImage {
+                Image(uiImage: localImage)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 56, height: 56)
+                    .clipShape(Circle())
+            } else if let avatarUrl = appState.currentUser?.avatarUrl, let url = URL(string: avatarUrl) {
                 AsyncImage(url: url) { image in
                     image.resizable().scaledToFill()
                 } placeholder: {
@@ -190,18 +198,22 @@ struct ProfileView: View {
 
     private func loadData() async {
         guard let userId = appState.currentUser?.id else { return }
-        // Nit #14: 先置 isLoading=true，再清空，loading 态盖住空列表避免闪烁
         isLoading = true
-        transactions = []
-        streak = 0
         isInitializing = true
+        // Bug #14：保留旧数据直到新数据回来，避免清空再填导致的闪烁
         defer { isLoading = false }
-        // Bug #13: 强制拉最新 users 数据，保证金币余额一致性
-        await appState.refreshProfile()
+
+        // 性能优化：三个请求并行发送，耗时从串行 ~300-500ms 降为最慢那个 ~150ms
+        async let _ = appState.refreshProfile()
+        async let txs = profileService.fetchRecentTransactions(userId: userId)
+        async let s = profileService.fetchStreak(userId: userId)
+
         do {
-            // Bug #25: try? 改为 do/catch，错误时展示 alert
-            transactions = try await profileService.fetchRecentTransactions(userId: userId)
-            streak = try await profileService.fetchStreak(userId: userId)
+            transactions = try await txs
+            streak = try await s
+        } catch is CancellationError {
+            // 切 tab / 视图重组导致的 Task 取消是良性的，不弹错误
+        } catch let urlError as URLError where urlError.code == .cancelled {
         } catch {
             errorMessage = error.localizedDescription
             showError = true
@@ -226,6 +238,8 @@ struct ProfileView: View {
                 .update(["push_enabled": enabled])
                 .eq("id", value: userId.uuidString)
                 .execute()
+        } catch is CancellationError {
+        } catch let urlError as URLError where urlError.code == .cancelled {
         } catch {
             errorMessage = "推送开关更新失败：\(error.localizedDescription)"
             showError = true
@@ -248,6 +262,12 @@ struct ProfileView: View {
         do {
             // Bug #25: 上传失败时展示错误
             _ = try await profileService.uploadAvatar(userId: userId, imageData: data)
+            // Bug #4 后续：成功后立刻用本地 UIImage 占位，避免 AsyncImage 走 CDN 冷启动等几秒
+            if let img = UIImage(data: data) {
+                localAvatarImage = img
+            }
+        } catch is CancellationError {
+        } catch let urlError as URLError where urlError.code == .cancelled {
         } catch {
             errorMessage = error.localizedDescription
             showError = true

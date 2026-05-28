@@ -120,7 +120,7 @@ struct SpinWheelView: View {
             .padding(Spacing.sm)
         }
         .buttonStyle(.glass)
-        .disabled(isSpinning)
+        .disabled(isSpinning || (appState.currentUser?.coins ?? 0) < spinCost)
     }
 
     private func rewardCell(reward: Reward, isHighlighted: Bool) -> some View {
@@ -156,6 +156,8 @@ struct SpinWheelView: View {
         do {
             let all = try await rewardService.fetchRewards()
             spinRewards = all.filter { $0.type == "spin" }
+        } catch is CancellationError {
+        } catch let urlError as URLError where urlError.code == .cancelled {
         } catch {
             errorMessage = error.localizedDescription
             showError = true
@@ -200,6 +202,14 @@ struct SpinWheelView: View {
 
             spinResult = result
             showResultAlert = true
+            await appState.refreshProfile()
+        } catch is CancellationError {
+            timer.invalidate()
+            spinTimer = nil
+            await appState.refreshProfile()
+        } catch let urlError as URLError where urlError.code == .cancelled {
+            timer.invalidate()
+            spinTimer = nil
             await appState.refreshProfile()
         } catch {
             timer.invalidate()

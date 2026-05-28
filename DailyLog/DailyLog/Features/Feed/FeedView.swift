@@ -81,6 +81,10 @@ struct FeedView: View {
 
         do {
             messages = try await feedService.fetchFeed()
+        } catch is CancellationError {
+            return
+        } catch let urlError as URLError where urlError.code == .cancelled {
+            return
         } catch {
             let desc = error.localizedDescription.lowercased()
             let isAuthError = error is AuthError

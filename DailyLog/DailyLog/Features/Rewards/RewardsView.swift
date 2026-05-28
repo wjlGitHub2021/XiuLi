@@ -177,6 +177,8 @@ struct RewardsView: View {
         defer { isLoading = false }
         do {
             rewards = try await rewardService.fetchRewards()
+        } catch is CancellationError {
+        } catch let urlError as URLError where urlError.code == .cancelled {
         } catch {
             errorMessage = error.localizedDescription
             showError = true
@@ -195,6 +197,10 @@ struct RewardsView: View {
             let result = try await rewardService.redeemReward(rewardId: reward.id)
             redeemResult = result
             showResultAlert = true
+            await appState.refreshProfile()
+        } catch is CancellationError {
+            await appState.refreshProfile()
+        } catch let urlError as URLError where urlError.code == .cancelled {
             await appState.refreshProfile()
         } catch {
             errorMessage = error.localizedDescription

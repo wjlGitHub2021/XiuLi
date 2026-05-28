@@ -1,5 +1,6 @@
 import SwiftUI
 import UIKit
+import ImageIO
 
 struct TaskCompleteSheet: View {
     let task: TaskItem
@@ -121,23 +122,43 @@ struct TaskCompleteSheet: View {
                 onCompleted(response.task)
                 dismiss()
             }
+        } catch is CancellationError {
+            // 切 sheet / 视图重组导致的取消，不弹错误
+        } catch let urlError as URLError where urlError.code == .cancelled {
         } catch {
-            errorMessage = "上传失败，请重试"
+            errorMessage = "上传失败：\(error.localizedDescription)"
         }
     }
 
     // MARK: - Image Compression
 
+    // Bug #2 修复：原 UIGraphicsImageRenderer 路径对 HEIF HDR/wide-gamut 图像输出可能损坏，
+    // 导致 Supabase Storage 写入时报"new row violates row-level security policy"（实为 metadata 校验失败）。
+    // 改为：优先用 ImageIO 走原始 JPEG/HEIF Data 重新编码；失败回退到强制 SDR 的 renderer。
     private func compressImage(_ image: UIImage, maxWidth: CGFloat, quality: CGFloat) -> Data? {
-        let ratio = maxWidth / image.size.width
-        let targetSize: CGSize
-        if ratio < 1 {
-            targetSize = CGSize(width: maxWidth, height: image.size.height * ratio)
-        } else {
-            targetSize = image.size
+        // 优先：UIImage → 原始 JPEG Data → CGImageSource → 缩略图。
+        // 不走原图 Data 是因为 PhotoPicker 已经把 HEIF 解码成 UIImage，但 jpegData 重新编码会丢色彩信息并标准化为 sRGB，
+        // 输出永远是合法的 JPEG 字节序列。
+        if let baseJPEG = image.jpegData(compressionQuality: 1.0),
+           let source = CGImageSourceCreateWithData(baseJPEG as CFData, nil) {
+            let maxPixel = max(maxWidth, maxWidth * image.size.height / max(image.size.width, 1))
+            let options: [CFString: Any] = [
+                kCGImageSourceCreateThumbnailFromImageAlways: true,
+                kCGImageSourceThumbnailMaxPixelSize: Int(maxPixel),
+                kCGImageSourceCreateThumbnailWithTransform: true
+            ]
+            if let cg = CGImageSourceCreateThumbnailAtIndex(source, 0, options as CFDictionary) {
+                return UIImage(cgImage: cg).jpegData(compressionQuality: quality)
+            }
         }
-        let renderer = UIGraphicsImageRenderer(size: targetSize)
-        let resized = renderer.image { _ in image.draw(in: CGRect(origin: .zero, size: targetSize)) }
+        // 回退：强制 SDR + 1x scale + 不透明的 renderer，避免 HDR/alpha 通道引发的损坏
+        let ratio = min(1, maxWidth / max(image.size.width, 1))
+        let target = CGSize(width: floor(image.size.width * ratio), height: floor(image.size.height * ratio))
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        format.opaque = true
+        let renderer = UIGraphicsImageRenderer(size: target, format: format)
+        let resized = renderer.image { _ in image.draw(in: CGRect(origin: .zero, size: target)) }
         return resized.jpegData(compressionQuality: quality)
     }
 }
