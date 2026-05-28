@@ -11,6 +11,10 @@ struct MainTabView: View {
                 .tabItem {
                     Label("动态", systemImage: "bubble.left.and.bubble.right")
                 }
+            RewardsView()
+                .tabItem {
+                    Label("奖励", systemImage: "gift")
+                }
             ProfileView()
                 .tabItem {
                     Label("我的", systemImage: "person.circle")
