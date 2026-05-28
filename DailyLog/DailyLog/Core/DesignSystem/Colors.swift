@@ -7,6 +7,9 @@ extension Color {
     static let dlLilac = Color(red: 238 / 255, green: 230 / 255, blue: 255 / 255)
     static let dlRoseMist = Color(red: 248 / 255, green: 221 / 255, blue: 244 / 255)
     static let dlPlum = Color(red: 182 / 255, green: 156 / 255, blue: 255 / 255)
+    static let dlVioletDeep = Color(red: 100 / 255, green: 68 / 255, blue: 210 / 255)
+    static let dlGlassWhite = Color.white.opacity(0.56)
+    static let dlGlassStroke = Color.white.opacity(0.58)
 
     // 功能色
     static let dlCoin = Color(red: 246 / 255, green: 201 / 255, blue: 72 / 255)
@@ -21,6 +24,6 @@ extension Color {
     // 向后兼容别名：保持旧代码不破
     static let dlPrimary = dlLavender
     static let dlSecondary = dlTextSecondary
-    static let dlBackground = Color(.systemGroupedBackground)
-    static let dlCardBackground = Color(.secondarySystemGroupedBackground)
+    static let dlBackground = dlLilac
+    static let dlCardBackground = dlGlassWhite
 }

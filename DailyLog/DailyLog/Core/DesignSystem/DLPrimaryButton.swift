@@ -20,6 +20,7 @@ struct DLPrimaryButton<Label: View>: View {
             .padding(.vertical, 14)
         }
         .buttonStyle(.glassProminent)
+        .tint(.dlLavender)
         .disabled(isDisabled || isLoading)
     }
 }

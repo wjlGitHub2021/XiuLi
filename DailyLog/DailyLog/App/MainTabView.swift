@@ -13,7 +13,7 @@ struct MainTabView: View {
                 .tabItem { Label("我的", systemImage: "person") }
         }
         .tint(.dlLavender)
-        .toolbarBackground(.ultraThinMaterial, for: .tabBar)
+        .toolbarBackground(.hidden, for: .tabBar)
         .toolbarBackground(.visible, for: .tabBar)
     }
 }

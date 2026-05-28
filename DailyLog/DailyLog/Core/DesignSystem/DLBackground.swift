@@ -6,23 +6,32 @@ import SwiftUI
 struct DLBackground: View {
     var body: some View {
         LinearGradient(
-            colors: [.dlLavenderSoft, .dlRoseMist, .dlPlum],
+            colors: [.dlLilac, .dlRoseMist, .dlLavenderSoft],
             startPoint: .topLeading,
             endPoint: .bottomTrailing
         )
         .overlay(alignment: .topLeading) {
-            Circle()
-                .fill(.white.opacity(0.18))
-                .frame(width: 520, height: 520)
-                .blur(radius: 56)
-                .offset(x: -180, y: -160)
+            RoundedRectangle(cornerRadius: 280, style: .continuous)
+                .fill(.white.opacity(0.24))
+                .frame(width: 560, height: 560)
+                .blur(radius: 78)
+                .offset(x: -200, y: -150)
+        }
+        .overlay(alignment: .center) {
+            RoundedRectangle(cornerRadius: 260, style: .continuous)
+                .fill(Color.dlLavender.opacity(0.14))
+                .frame(width: 720, height: 420)
+                .blur(radius: 72)
         }
         .overlay(alignment: .bottomTrailing) {
-            Circle()
-                .fill(Color.dlLavender.opacity(0.45))
-                .frame(width: 620, height: 620)
-                .blur(radius: 70)
-                .offset(x: 220, y: 260)
+            RoundedRectangle(cornerRadius: 300, style: .continuous)
+                .fill(Color.dlVioletDeep.opacity(0.22))
+                .frame(width: 640, height: 640)
+                .blur(radius: 88)
+                .offset(x: 240, y: 260)
+        }
+        .overlay {
+            Color.white.opacity(0.04)
         }
         .ignoresSafeArea()
     }

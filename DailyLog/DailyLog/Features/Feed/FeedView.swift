@@ -14,47 +14,61 @@ struct FeedView: View {
             ZStack {
                 DLBackground()
                 ScrollView {
-                    VStack(spacing: Spacing.md) {
+                    VStack(spacing: Spacing.section) {
+                        DLGlassPageHeader(title: "动态", subtitle: "最近发生了什么") {
+                            DLGlassBadge(icon: "bubble.left.and.bubble.right", text: "\(messages.count)", tint: .dlLavender)
+                        }
+
                         if let errorMessage {
-                            DLErrorBanner(message: errorMessage)
-                                .padding(.horizontal, Spacing.screenHorizontal)
+                            DLErrorBanner(message: errorMessage, onRetry: {
+                                Task { await loadFeed() }
+                            })
+                            .padding(.horizontal, Spacing.screenHorizontal)
                         }
 
                         if isLoading && messages.isEmpty {
-                            ProgressView()
-                                .padding(.top, 100)
+                            DLLoadingState()
+                                .padding(.horizontal, Spacing.screenHorizontal)
                         } else if messages.isEmpty {
                             DLEmptyState(
                                 icon: "bubble.left.and.bubble.right",
                                 title: "还没有动态",
                                 subtitle: "快去完成任务吧"
                             )
+                            .padding(.horizontal, Spacing.screenHorizontal)
                         } else {
                             feedList
                         }
                     }
-                    .padding(.vertical, Spacing.sm)
+                    .padding(.vertical, Spacing.screenVertical)
                 }
                 .scrollContentBackground(.hidden)
             }
             .refreshable { await loadFeed() }
             .navigationTitle("动态")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(.hidden, for: .navigationBar)
         }
         .task { await loadFeed() }
     }
 
     private var feedList: some View {
-        GlassEffectContainer(spacing: 8.0) {
-            VStack(spacing: Spacing.sm) {
-                ForEach(messages) { message in
+        VStack(spacing: Spacing.sm) {
+            ForEach(messages) { message in
+                DLGlassCard(tint: tint(for: message), cornerRadius: CornerRadius.smallCard) {
                     FeedItemView(message: message, currentUserId: appState.currentUser?.id)
-                        .padding(.horizontal, Spacing.md)
-                        .padding(.vertical, Spacing.sm)
-                        .glassEffect(.regular, in: .rect(cornerRadius: CornerRadius.smallCard))
                 }
+                .padding(.horizontal, Spacing.screenHorizontal)
             }
-            .padding(.horizontal, Spacing.md)
+        }
+    }
+
+    private func tint(for message: FeedMessage) -> Color {
+        switch message.type {
+        case "task_complete": return .dlSuccess
+        case "reward_redeem": return .dlCoin
+        case "spin_win": return .dlLavender
+        default: return .dlPlum
         }
     }
 
@@ -76,11 +90,9 @@ struct FeedView: View {
                 || desc.contains("unauthorized")
                 || desc.contains("jwt")
             if isAuthError {
-                // 登录态失效，退回登录页
                 await appState.signOut()
                 return
             }
-            // 保留旧数据，只展示刷新失败提示
             errorMessage = "刷新失败，数据可能不是最新，下拉重试"
         }
     }

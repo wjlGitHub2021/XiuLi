@@ -14,16 +14,12 @@ struct SpinWheelView: View {
 
     private let rewardService = RewardService()
     private let spinCost = 10
-
-    // 3x3 grid: indices 0-8, center (index 4) is the Start button
-    // Spin animation cycles through the 8 outer cells
     private let outerIndices = [0, 1, 2, 5, 8, 7, 6, 3]
 
     var gridItems: [GridItem] {
         Array(repeating: GridItem(.flexible(), spacing: 8), count: 3)
     }
 
-    // Pad or trim spinRewards to exactly 8 items for the outer cells
     var displayRewards: [Reward] {
         let base = spinRewards.prefix(8)
         if base.count < 8 {
@@ -40,22 +36,23 @@ struct SpinWheelView: View {
         ZStack {
             DLBackground()
             ScrollView {
-                GlassEffectContainer(spacing: 16.0) {
-                    VStack(spacing: Spacing.md) {
-                        coinCostHeader
-                        // Bug #26: isLoading 时显示 ProgressView 替代转盘
-                        if isLoading {
-                            ProgressView("加载中...")
-                                .frame(maxWidth: .infinity)
-                                .padding(Spacing.xl)
-                                .glassEffect(.regular, in: .rect(cornerRadius: CornerRadius.card))
-                        } else {
-                            wheelGrid
-                        }
+                VStack(spacing: Spacing.section) {
+                    DLGlassPageHeader(title: "转盘抽奖", subtitle: "每次消耗 \(spinCost) 金币") {
+                        DLGlassBadge(icon: "bitcoinsign.circle.fill",
+                                     text: "\(appState.currentUser?.coins ?? 0)",
+                                     tint: .dlCoin)
                     }
-                    .padding(.horizontal, Spacing.screenHorizontal)
-                    .padding(.vertical, Spacing.sm)
+
+                    coinCostHeader
+
+                    if isLoading {
+                        DLLoadingState()
+                            .padding(.horizontal, Spacing.screenHorizontal)
+                    } else {
+                        wheelGrid
+                    }
                 }
+                .padding(.vertical, Spacing.screenVertical)
             }
             .scrollContentBackground(.hidden)
         }
@@ -76,39 +73,40 @@ struct SpinWheelView: View {
     }
 
     private var coinCostHeader: some View {
-        HStack(spacing: Spacing.sm) {
-            Image(systemName: "bitcoinsign.circle.fill")
-                .foregroundStyle(Color.dlCoin)
-            Text("余额：\(appState.currentUser?.coins ?? 0) 金币")
-                .font(.subheadline)
-                .foregroundStyle(Color.dlTextPrimary)
-            Spacer()
-            Text("每次消耗 \(spinCost) 金币")
-                .font(.caption)
-                .foregroundStyle(Color.dlTextSecondary)
+        DLGlassCard(tint: Color.dlCoin) {
+            HStack(spacing: Spacing.sm) {
+                Image(systemName: "bitcoinsign.circle.fill")
+                    .foregroundStyle(Color.dlCoin)
+                Text("余额：\(appState.currentUser?.coins ?? 0) 金币")
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(Color.dlTextPrimary)
+                Spacer()
+                Text("每次消耗 \(spinCost)")
+                    .font(.caption)
+                    .foregroundStyle(Color.dlTextSecondary)
+            }
         }
-        .padding(Spacing.md)
-        .glassEffect(.regular.tint(Color.dlCoin.opacity(0.32)), in: .rect(cornerRadius: CornerRadius.smallCard))
+        .padding(.horizontal, Spacing.screenHorizontal)
     }
 
     private var wheelGrid: some View {
-        LazyVGrid(columns: gridItems, spacing: 8) {
-            ForEach(0..<9, id: \.self) { index in
-                if index == 4 {
-                    startButton
-                } else {
-                    let rewardIndex = outerCellRewardIndex(gridIndex: index)
-                    let reward = displayRewards[rewardIndex]
-                    let isHighlighted = outerIndices.firstIndex(of: index) == highlightedIndex % 8
-                    rewardCell(reward: reward, isHighlighted: isHighlighted)
+        DLGlassCard(tint: Color.dlLavender, cornerRadius: CornerRadius.panel) {
+            LazyVGrid(columns: gridItems, spacing: 8) {
+                ForEach(0..<9, id: \.self) { index in
+                    if index == 4 {
+                        startButton
+                    } else {
+                        let rewardIndex = outerCellRewardIndex(gridIndex: index)
+                        let reward = displayRewards[rewardIndex]
+                        let isHighlighted = outerIndices.firstIndex(of: index) == highlightedIndex % 8
+                        rewardCell(reward: reward, isHighlighted: isHighlighted)
+                    }
                 }
             }
         }
-        .padding(Spacing.sm)
-        .glassEffect(.regular, in: .rect(cornerRadius: CornerRadius.card))
+        .padding(.horizontal, Spacing.screenHorizontal)
     }
 
-    // Bug #6: .disabled(isSpinning) 防双击（UI 层禁用）
     private var startButton: some View {
         Button {
             Task { await startSpin() }
@@ -118,15 +116,15 @@ struct SpinWheelView: View {
                     .font(.title2)
                     .rotationEffect(isSpinning ? .degrees(360) : .zero)
                     .animation(isSpinning ? .linear(duration: 0.5).repeatForever(autoreverses: false) : .default, value: isSpinning)
-                    .foregroundStyle(.white)
                 Text(isSpinning ? "抽奖中" : "开始")
                     .font(.headline.bold())
-                    .foregroundStyle(.white)
             }
+            .foregroundStyle(Color.white)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .aspectRatio(1, contentMode: .fit)
             .padding(Spacing.sm)
-            .glassEffect(.regular.tint(Color.dlLavender.opacity(0.6)), in: .rect(cornerRadius: CornerRadius.control))
+            .glassEffect(.regular.tint(Color.dlLavender.opacity(0.68)).interactive(),
+                         in: .rect(cornerRadius: CornerRadius.control))
         }
         .buttonStyle(.plain)
         .disabled(isSpinning || (appState.currentUser?.coins ?? 0) < spinCost)
@@ -137,7 +135,7 @@ struct SpinWheelView: View {
             Text(reward.icon)
                 .font(.title2)
             Text(reward.name)
-                .font(.caption2)
+                .font(.caption2.weight(.semibold))
                 .foregroundStyle(Color.dlTextPrimary)
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
@@ -146,20 +144,18 @@ struct SpinWheelView: View {
         .aspectRatio(1, contentMode: .fit)
         .padding(Spacing.xs)
         .glassEffect(
-            isHighlighted ? .regular.tint(Color.dlCoin.opacity(0.5)) : .regular,
+            isHighlighted ? .regular.tint(Color.dlCoin.opacity(0.55)).interactive() : .regular.interactive(),
             in: .rect(cornerRadius: CornerRadius.control)
         )
         .scaleEffect(isHighlighted ? 1.05 : 1.0)
         .animation(.easeInOut(duration: 0.1), value: isHighlighted)
     }
 
-    // Maps grid index (0-8, skipping 4) to reward array index (0-7)
     private func outerCellRewardIndex(gridIndex: Int) -> Int {
         guard let pos = outerIndices.firstIndex(of: gridIndex) else { return 0 }
         return pos
     }
 
-    // Bug #18: try? 改 do/catch，加载失败 alert 展示错误
     private func loadSpinRewards() async {
         isLoading = true
         defer { isLoading = false }
@@ -174,16 +170,13 @@ struct SpinWheelView: View {
         }
     }
 
-    // Bug #6: @MainActor 保证 isSpinning check-and-set 原子执行，防双击竞态
     @MainActor
     private func startSpin() async {
-        // 原子检查：第一个 await 之前同步设置锁
         guard !isSpinning else { return }
         isSpinning = true
         defer { isSpinning = false }
         highlightedIndex = 0
 
-        // Start animation timer
         var step = 0
         let timer = Timer.scheduledTimer(withTimeInterval: 0.12, repeats: true) { t in
             step += 1
@@ -194,19 +187,15 @@ struct SpinWheelView: View {
 
         do {
             let result = try await rewardService.spinWheel(cost: spinCost)
-            // Stop animation after a short delay
             try? await Task.sleep(nanoseconds: 600_000_000)
             timer.invalidate()
             spinTimer = nil
 
-            // Bug #17: SpinResponse 无 rewardId，降级为 name+cost 双字段匹配
-            // 若后端后续返回 reward_id，改为按 id 匹配可消除同名歧义
             if let winIndex = displayRewards.firstIndex(where: {
                 $0.name == result.rewardName && $0.cost == result.cost
             }) {
                 highlightedIndex = winIndex
             } else if let winIndex = displayRewards.firstIndex(where: { $0.name == result.rewardName }) {
-                // 仅 name 匹配时取第一个（同名奖励取 sortOrder 最小的那格）
                 highlightedIndex = winIndex
             }
 

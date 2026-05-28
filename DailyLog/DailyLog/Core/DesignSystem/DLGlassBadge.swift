@@ -11,6 +11,7 @@ struct DLGlassBadge: View {
                 .foregroundStyle(tint)
             Text(text)
                 .font(.subheadline.bold())
+                .foregroundStyle(Color.dlTextPrimary)
         }
         .padding(.horizontal, Spacing.sm)
         .padding(.vertical, Spacing.xs)

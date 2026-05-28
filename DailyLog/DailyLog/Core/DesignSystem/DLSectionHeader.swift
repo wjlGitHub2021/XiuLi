@@ -14,11 +14,11 @@ struct DLSectionHeader: View {
             if let icon {
                 Image(systemName: icon)
                     .font(.caption.bold())
-                    .foregroundStyle(Color.dlPlum)
+                    .foregroundStyle(Color.dlLavender)
             }
             Text(title)
                 .font(.subheadline.bold())
-                .foregroundStyle(Color.dlTextSecondary)
+                .foregroundStyle(Color.dlTextPrimary)
         }
         .padding(.horizontal, Spacing.xs)
     }

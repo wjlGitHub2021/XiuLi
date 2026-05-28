@@ -8,15 +8,13 @@ struct TaskRowView: View {
     var body: some View {
         HStack(spacing: Spacing.md) {
             taskIcon
-                .frame(width: 40, height: 40)
-                .glassEffect(.regular.tint(Color.dlLavender.opacity(0.22)),
-                             in: .circle)
 
             VStack(alignment: .leading, spacing: Spacing.xs) {
                 Text(task.title)
-                    .font(.body)
+                    .font(.body.weight(.medium))
                     .strikethrough(task.isCompleted)
                     .foregroundStyle(task.isCompleted ? Color.dlTextSecondary : Color.dlTextPrimary)
+                    .lineLimit(1)
                 if let notes = task.notes, !notes.isEmpty {
                     Text(notes)
                         .font(.caption)
@@ -25,9 +23,9 @@ struct TaskRowView: View {
                 }
             }
 
-            Spacer()
+            Spacer(minLength: Spacing.sm)
 
-            HStack(spacing: Spacing.xs) {
+            HStack(spacing: 4) {
                 Image(systemName: "bitcoinsign.circle.fill")
                     .foregroundStyle(Color.dlCoin)
                 Text("+\(task.coinsEarned)")
@@ -49,20 +47,25 @@ struct TaskRowView: View {
             .accessibilityLabel(task.isCompleted ? "已完成" : (isToday ? "标记为完成" : "只能完成今日任务"))
         }
         .padding(.horizontal, Spacing.md)
-        .padding(.vertical, Spacing.sm)
+        .padding(.vertical, 13)
     }
 
-    @ViewBuilder
     private var taskIcon: some View {
-        let symbol: String = {
-            switch task.taskType {
-            case .daily:   return "sun.max.fill"
-            case .weekly:  return "calendar.badge.checkmark"
-            case .monthly: return "chart.line.uptrend.xyaxis"
-            }
-        }()
-        Image(systemName: symbol)
-            .font(.system(size: 18, weight: .semibold))
-            .foregroundStyle(Color.dlLavender)
+        ZStack {
+            Circle()
+                .fill((task.isCompleted ? Color.dlSuccess : Color.dlLavender).opacity(0.16))
+                .frame(width: 42, height: 42)
+            Image(systemName: symbol)
+                .font(.system(size: 17, weight: .semibold))
+                .foregroundStyle(task.isCompleted ? Color.dlSuccess : Color.dlLavender)
+        }
+    }
+
+    private var symbol: String {
+        switch task.taskType {
+        case .daily: "sun.max.fill"
+        case .weekly: "calendar.badge.checkmark"
+        case .monthly: "chart.line.uptrend.xyaxis"
+        }
     }
 }

@@ -5,12 +5,11 @@ struct FeedItemView: View {
     let currentUserId: UUID?
 
     var body: some View {
-        HStack(alignment: .top, spacing: Spacing.sm) {
-            // Type icon
+        HStack(alignment: .top, spacing: Spacing.md) {
             ZStack {
                 Circle()
-                    .fill(iconColor.opacity(0.18))
-                    .frame(width: 40, height: 40)
+                    .fill(iconColor.opacity(0.16))
+                    .frame(width: 42, height: 42)
                 Image(systemName: iconName)
                     .font(.system(size: 18, weight: .semibold))
                     .foregroundStyle(iconColor)
@@ -28,7 +27,7 @@ struct FeedItemView: View {
                 }
 
                 Text(message.title)
-                    .font(.subheadline.weight(.medium))
+                    .font(.subheadline.weight(.semibold))
                     .foregroundStyle(Color.dlTextPrimary)
 
                 if let body = message.body, !body.isEmpty {
@@ -45,17 +44,17 @@ struct FeedItemView: View {
         switch message.type {
         case "task_complete": return "checkmark.circle.fill"
         case "reward_redeem": return "gift.fill"
-        case "spin_win":      return "star.fill"
-        default:              return "bell.fill"
+        case "spin_win": return "star.fill"
+        default: return "bell.fill"
         }
     }
 
     private var iconColor: Color {
         switch message.type {
-        case "task_complete": return Color.dlSuccess
-        case "reward_redeem": return Color.dlCoin
-        case "spin_win":      return Color.dlLavender
-        default:              return Color.dlPlum
+        case "task_complete": return .dlSuccess
+        case "reward_redeem": return .dlCoin
+        case "spin_win": return .dlLavender
+        default: return .dlPlum
         }
     }
 
