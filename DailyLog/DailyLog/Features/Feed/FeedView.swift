@@ -38,6 +38,7 @@ struct FeedView: View {
                 .scrollContentBackground(.hidden)
                 .refreshable { await loadFeed() }
                 .navigationTitle("动态")
+                .toolbarBackground(.hidden, for: .navigationBar)
             }
         }
         .task { await loadFeed() }

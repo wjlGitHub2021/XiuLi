@@ -38,6 +38,7 @@ struct RewardsView: View {
                 }
                 .scrollContentBackground(.hidden)
                 .navigationTitle("奖励")
+                .toolbarBackground(.hidden, for: .navigationBar)
                 .refreshable { await loadRewards() }
                 .navigationDestination(isPresented: $showSpinWheel) {
                     SpinWheelView()

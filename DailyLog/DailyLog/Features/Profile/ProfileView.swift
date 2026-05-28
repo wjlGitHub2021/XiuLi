@@ -41,6 +41,7 @@ struct ProfileView: View {
                 .scrollContentBackground(.hidden)
                 .refreshable { await loadData() }
                 .navigationTitle("我的")
+                .toolbarBackground(.hidden, for: .navigationBar)
                 .confirmationDialog("确认退出登录？", isPresented: $showLogoutConfirm) {
                     Button("退出登录", role: .destructive) {
                         Task { await appState.signOut() }

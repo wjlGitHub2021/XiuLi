@@ -61,6 +61,7 @@ struct SpinWheelView: View {
         }
         .navigationTitle("转盘抽奖")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(.hidden, for: .navigationBar)
         .task { await loadSpinRewards() }
         .alert("抽奖结果", isPresented: $showResultAlert, presenting: spinResult) { _ in
             Button("好的") {}

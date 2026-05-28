@@ -55,6 +55,7 @@ struct TodayView: View {
                 .scrollContentBackground(.hidden)
                 .refreshable { await loadAllTasks() }
                 .navigationTitle("今日")
+                .toolbarBackground(.hidden, for: .navigationBar)
                 .toolbar {
                     ToolbarItem(placement: .topBarLeading) { coinBadge }
                     ToolbarItem(placement: .topBarTrailing) {

@@ -86,7 +86,7 @@ struct LoginView: View {
                                 }
                             } label: {
                                 Image(systemName: isPasswordVisible ? "eye.slash" : "eye")
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(Color.dlTextSecondary)
                             }
                             .buttonStyle(.plain)
                         }

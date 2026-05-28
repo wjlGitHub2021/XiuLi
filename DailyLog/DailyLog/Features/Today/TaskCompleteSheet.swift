@@ -108,6 +108,7 @@ struct TaskCompleteSheet: View {
             }
             .navigationTitle("完成任务")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(.hidden, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("取消") { dismiss() }
