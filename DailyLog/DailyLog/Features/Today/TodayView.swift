@@ -22,54 +22,57 @@ struct TodayView: View {
     }
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: Spacing.md) {
-                    CalendarView(selectedDate: $selectedDate)
+        ZStack {
+            DLBackground()
+            NavigationStack {
+                ScrollView {
+                    VStack(spacing: Spacing.section) {
+                        CalendarView(selectedDate: $selectedDate)
 
-                    if let errorMessage {
-                        DLErrorBanner(message: errorMessage)
-                            .padding(.horizontal, Spacing.md)
-                    }
+                        if let errorMessage {
+                            DLErrorBanner(message: errorMessage)
+                                .padding(.horizontal, Spacing.screenHorizontal)
+                        }
 
-                    if isLoading && allTasksEmpty {
-                        ProgressView()
-                            .padding(.top, 100)
-                    } else if allTasksEmpty {
-                        DLEmptyState(message: Calendar.current.isDateInToday(selectedDate) ? "今日无任务" : "该日无任务")
-                    } else {
-                        taskSections
+                        if isLoading && allTasksEmpty {
+                            ProgressView()
+                                .padding(.top, 100)
+                        } else if allTasksEmpty {
+                            DLEmptyState(message: Calendar.current.isDateInToday(selectedDate) ? "今日无任务" : "该日无任务")
+                        } else {
+                            taskSections
+                        }
+                    }
+                    .padding(.vertical, Spacing.sm)
+                }
+                .scrollContentBackground(.hidden)
+                .refreshable { await loadAllTasks() }
+                .navigationTitle("今日")
+                .toolbar {
+                    ToolbarItem(placement: .topBarLeading) { coinBadge }
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button(action: { showCreateSheet = true }) {
+                            Image(systemName: "plus")
+                                .font(.headline)
+                        }
+                        .buttonStyle(.glass)
                     }
                 }
-                .padding(.vertical, Spacing.sm)
-            }
-            .refreshable { await loadAllTasks() }
-            .navigationTitle("今日")
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    coinBadge
-                }
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button(action: { showCreateSheet = true }) {
-                        Image(systemName: "plus.circle.fill")
+                .sheet(isPresented: $showCreateSheet) {
+                    CreateTaskSheet(taskType: .daily) { newTask in
+                        switch newTask.taskType {
+                        case .daily: dailyTasks.insert(newTask, at: 0)
+                        case .weekly: weeklyTasks.insert(newTask, at: 0)
+                        case .monthly: monthlyTasks.insert(newTask, at: 0)
+                        }
                     }
-                    .buttonStyle(.glass)
+                    .environment(appState)
                 }
-            }
-            .sheet(isPresented: $showCreateSheet) {
-                CreateTaskSheet(taskType: .daily) { newTask in
-                    switch newTask.taskType {
-                    case .daily: dailyTasks.insert(newTask, at: 0)
-                    case .weekly: weeklyTasks.insert(newTask, at: 0)
-                    case .monthly: monthlyTasks.insert(newTask, at: 0)
+                .sheet(item: $taskToComplete) { task in
+                    TaskCompleteSheet(task: task) { completedTask in
+                        updateTask(completedTask)
+                        Task { await appState.refreshProfile() }
                     }
-                }
-                .environment(appState)
-            }
-            .sheet(item: $taskToComplete) { task in
-                TaskCompleteSheet(task: task) { completedTask in
-                    updateTask(completedTask)
-                    Task { await appState.refreshProfile() }
                 }
             }
         }
@@ -81,15 +84,9 @@ struct TodayView: View {
     @ViewBuilder
     private var coinBadge: some View {
         if let user = appState.currentUser {
-            HStack(spacing: Spacing.xs) {
-                Image(systemName: "bitcoinsign.circle.fill")
-                    .foregroundStyle(Color.dlCoin)
-                Text("\(user.coins)")
-                    .font(.subheadline.bold())
-            }
-            .padding(.horizontal, Spacing.sm)
-            .padding(.vertical, Spacing.xs)
-            .glassEffect(.regular.tint(.yellow), in: .capsule)
+            DLGlassBadge(icon: "bitcoinsign.circle.fill",
+                         text: "\(user.coins)",
+                         tint: .dlCoin)
         }
     }
 
@@ -99,33 +96,28 @@ struct TodayView: View {
         GlassEffectContainer(spacing: 8.0) {
             VStack(spacing: Spacing.md) {
                 if !dailyTasks.isEmpty {
-                    taskSection(title: "日任务", tasks: dailyTasks, type: .daily)
+                    taskSection(title: "日任务", icon: "sun.max", tasks: dailyTasks, type: .daily)
                 }
                 if !weeklyTasks.isEmpty {
-                    taskSection(title: "周任务", tasks: weeklyTasks, type: .weekly)
+                    taskSection(title: "周任务", icon: "calendar", tasks: weeklyTasks, type: .weekly)
                 }
                 if !monthlyTasks.isEmpty {
-                    taskSection(title: "月任务", tasks: monthlyTasks, type: .monthly)
+                    taskSection(title: "月任务", icon: "chart.bar", tasks: monthlyTasks, type: .monthly)
                 }
             }
-            .padding(.horizontal, Spacing.md)
+            .padding(.horizontal, Spacing.screenHorizontal)
         }
     }
 
     @ViewBuilder
-    private func taskSection(title: String, tasks: [TaskItem], type: TaskType) -> some View {
+    private func taskSection(title: String, icon: String, tasks: [TaskItem], type: TaskType) -> some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
-            Text(title)
-                .font(.subheadline.bold())
-                .foregroundStyle(.secondary)
-                .padding(.horizontal, Spacing.xs)
+            DLSectionHeader(title, icon: icon)
             ForEach(tasks) { task in
                 TaskRowView(task: task, isToday: isToday) {
                     taskToComplete = task
                 }
-                .padding(.horizontal, Spacing.md)
-                .padding(.vertical, Spacing.sm)
-                .glassEffect(.regular, in: .rect(cornerRadius: 16))
+                .glassEffect(.regular, in: .rect(cornerRadius: CornerRadius.smallCard))
             }
         }
     }

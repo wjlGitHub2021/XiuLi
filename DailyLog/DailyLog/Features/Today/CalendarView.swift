@@ -25,7 +25,7 @@ struct CalendarView: View {
             }
         }
         .padding(Spacing.md)
-        .glassEffect(.regular, in: .rect(cornerRadius: 20))
+        .glassEffect(.regular, in: .rect(cornerRadius: CornerRadius.card))
         .padding(.horizontal, Spacing.md)
     }
 
@@ -68,7 +68,7 @@ struct CalendarView: View {
             ForEach(weekdaySymbols, id: \.self) { symbol in
                 Text(symbol)
                     .font(.caption.bold())
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.dlTextSecondary)
                     .frame(maxWidth: .infinity)
             }
         }
@@ -118,16 +118,16 @@ struct CalendarView: View {
                 .foregroundStyle(
                     isSelected ? Color.white :
                     isToday ? Color.dlCoin :
-                    isCurrentMonth ? Color.primary : Color.primary.opacity(0.3)
+                    isCurrentMonth ? Color.dlTextPrimary : Color.dlTextPrimary.opacity(0.3)
                 )
                 .frame(width: 36, height: 36)
                 .background {
                     if isSelected {
                         Circle()
-                            .glassEffect(.regular.tint(Color.dlCoin), in: .circle)
+                            .glassEffect(.regular.tint(Color.dlLavender), in: .circle)
                     } else if isToday {
                         Circle()
-                            .glassEffect(.regular.tint(.yellow.opacity(0.4)), in: .circle)
+                            .glassEffect(.regular.tint(Color.dlCoin.opacity(0.4)), in: .circle)
                     }
                 }
         }
