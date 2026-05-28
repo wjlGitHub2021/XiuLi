@@ -11,67 +11,65 @@ struct FeedView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: Spacing.md) {
-                    if let errorMessage {
-                        feedErrorBanner(message: errorMessage)
-                            .padding(.horizontal, Spacing.md)
-                    }
+            ZStack {
+                DLBackground()
+                ScrollView {
+                    VStack(spacing: Spacing.section) {
+                        DLGlassPageHeader(title: "动态", subtitle: "最近发生了什么") {
+                            DLGlassBadge(icon: "bubble.left.and.bubble.right", text: "\(messages.count)", tint: .dlLavender)
+                        }
 
-                    if isLoading && messages.isEmpty {
-                        ProgressView()
-                            .padding(.top, 100)
-                    } else if messages.isEmpty {
-                        DLEmptyState(message: "还没有动态，快去完成任务吧")
-                    } else {
-                        feedList
+                        if let errorMessage {
+                            DLErrorBanner(message: errorMessage, onRetry: {
+                                Task { await loadFeed() }
+                            })
+                            .padding(.horizontal, Spacing.screenHorizontal)
+                        }
+
+                        if isLoading && messages.isEmpty {
+                            DLLoadingState()
+                                .padding(.horizontal, Spacing.screenHorizontal)
+                        } else if messages.isEmpty {
+                            DLEmptyState(
+                                icon: "bubble.left.and.bubble.right",
+                                title: "还没有动态",
+                                subtitle: "快去完成任务吧"
+                            )
+                            .padding(.horizontal, Spacing.screenHorizontal)
+                        } else {
+                            feedList
+                        }
                     }
+                    .padding(.vertical, Spacing.screenVertical)
                 }
-                .padding(.vertical, Spacing.sm)
+                .scrollContentBackground(.hidden)
             }
             .refreshable { await loadFeed() }
             .navigationTitle("动态")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(.hidden, for: .navigationBar)
         }
         .task { await loadFeed() }
     }
 
     private var feedList: some View {
-        GlassEffectContainer(spacing: 8.0) {
-            VStack(spacing: Spacing.sm) {
-                ForEach(messages) { message in
+        VStack(spacing: Spacing.sm) {
+            ForEach(messages) { message in
+                DLGlassCard(tint: tint(for: message), cornerRadius: CornerRadius.smallCard) {
                     FeedItemView(message: message, currentUserId: appState.currentUser?.id)
-                        .padding(.horizontal, Spacing.md)
-                        .padding(.vertical, Spacing.sm)
-                        .glassEffect(.regular, in: .rect(cornerRadius: 16))
                 }
+                .padding(.horizontal, Spacing.screenHorizontal)
             }
-            .padding(.horizontal, Spacing.md)
         }
     }
 
-    @ViewBuilder
-    private func feedErrorBanner(message: String) -> some View {
-        HStack(spacing: Spacing.sm) {
-            Image(systemName: "exclamationmark.triangle.fill")
-                .foregroundStyle(.orange)
-            Text(message)
-                .font(.caption)
-                .foregroundStyle(.primary)
-                .frame(maxWidth: .infinity, alignment: .leading)
-            Button {
-                errorMessage = nil
-            } label: {
-                Image(systemName: "xmark")
-                    .font(.caption.bold())
-                    .foregroundStyle(.secondary)
-            }
+    private func tint(for message: FeedMessage) -> Color {
+        switch message.type {
+        case "task_complete": return .dlSuccess
+        case "reward_redeem": return .dlCoin
+        case "spin_win": return .dlLavender
+        default: return .dlPlum
         }
-        .padding(Spacing.sm)
-        .background(.yellow.opacity(0.25), in: RoundedRectangle(cornerRadius: 10))
-        .overlay(
-            RoundedRectangle(cornerRadius: 10)
-                .stroke(.orange.opacity(0.4), lineWidth: 1)
-        )
     }
 
     private func loadFeed() async {
@@ -92,11 +90,9 @@ struct FeedView: View {
                 || desc.contains("unauthorized")
                 || desc.contains("jwt")
             if isAuthError {
-                // 登录态失效，退回登录页
                 await appState.signOut()
                 return
             }
-            // 保留旧数据，只展示刷新失败提示
             errorMessage = "刷新失败，数据可能不是最新，下拉重试"
         }
     }

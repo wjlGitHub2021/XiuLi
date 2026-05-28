@@ -23,37 +23,54 @@ struct TodayView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: Spacing.md) {
-                    CalendarView(selectedDate: $selectedDate)
+            ZStack {
+                DLBackground()
+                ScrollView {
+                    VStack(spacing: Spacing.section) {
+                        headerArea
+                        CalendarView(selectedDate: $selectedDate)
 
-                    if let errorMessage {
-                        DLErrorBanner(message: errorMessage)
-                            .padding(.horizontal, Spacing.md)
-                    }
+                        if let errorMessage {
+                            DLErrorBanner(message: errorMessage, onRetry: {
+                                Task { await loadAllTasks() }
+                            })
+                            .padding(.horizontal, Spacing.screenHorizontal)
+                        }
 
-                    if isLoading && allTasksEmpty {
-                        ProgressView()
-                            .padding(.top, 100)
-                    } else if allTasksEmpty {
-                        DLEmptyState(message: Calendar.current.isDateInToday(selectedDate) ? "今日无任务" : "该日无任务")
-                    } else {
-                        taskSections
+                        if isLoading && allTasksEmpty {
+                            DLLoadingState()
+                                .padding(.horizontal, Spacing.screenHorizontal)
+                        } else if allTasksEmpty {
+                            DLEmptyState(
+                                icon: "tray",
+                                title: isToday ? "今日无任务" : "该日无任务",
+                                subtitle: isToday ? "今天还没有安排任务" : "这一天暂时没有任务",
+                                actionTitle: isToday ? "新建任务" : nil,
+                                action: isToday ? { showCreateSheet = true } : nil
+                            )
+                            .padding(.horizontal, Spacing.screenHorizontal)
+                        } else {
+                            taskSections
+                        }
                     }
+                    .padding(.top, Spacing.screenVertical)
+                    .padding(.bottom, Spacing.section)
                 }
-                .padding(.vertical, Spacing.sm)
+                .scrollContentBackground(.hidden)
             }
             .refreshable { await loadAllTasks() }
             .navigationTitle("今日")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(.hidden, for: .navigationBar)
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    coinBadge
-                }
+                ToolbarItem(placement: .topBarLeading) { coinBadge }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(action: { showCreateSheet = true }) {
-                        Image(systemName: "plus.circle.fill")
+                        Image(systemName: "plus")
+                            .font(.headline)
                     }
                     .buttonStyle(.glass)
+                    .tint(.dlLavender)
                 }
             }
             .sheet(isPresented: $showCreateSheet) {
@@ -76,61 +93,62 @@ struct TodayView: View {
         .task(id: selectedDate) { await loadAllTasks() }
     }
 
-    // MARK: - Coin Badge
+    private var headerArea: some View {
+        HStack(alignment: .top, spacing: Spacing.md) {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
+                Text("今日")
+                    .font(.system(size: 34, weight: .bold))
+                    .foregroundStyle(Color.dlTextPrimary)
+                Text(isToday ? "把今天的任务收进来" : selectedDate.formatted(.dateTime.month(.wide).day()))
+                    .font(.subheadline)
+                    .foregroundStyle(Color.dlTextSecondary)
+            }
+            Spacer()
+            if let user = appState.currentUser {
+                DLGlassBadge(icon: "bitcoinsign.circle.fill", text: "\(user.coins)", tint: .dlCoin)
+            }
+        }
+        .padding(.horizontal, Spacing.screenHorizontal)
+    }
 
     @ViewBuilder
     private var coinBadge: some View {
         if let user = appState.currentUser {
-            HStack(spacing: Spacing.xs) {
-                Image(systemName: "bitcoinsign.circle.fill")
-                    .foregroundStyle(Color.dlCoin)
-                Text("\(user.coins)")
-                    .font(.subheadline.bold())
-            }
-            .padding(.horizontal, Spacing.sm)
-            .padding(.vertical, Spacing.xs)
-            .glassEffect(.regular.tint(.yellow), in: .capsule)
+            DLGlassBadge(icon: "bitcoinsign.circle.fill",
+                         text: "\(user.coins)",
+                         tint: .dlCoin)
         }
     }
-
-    // MARK: - Task Sections
 
     private var taskSections: some View {
-        GlassEffectContainer(spacing: 8.0) {
-            VStack(spacing: Spacing.md) {
-                if !dailyTasks.isEmpty {
-                    taskSection(title: "日任务", tasks: dailyTasks, type: .daily)
-                }
-                if !weeklyTasks.isEmpty {
-                    taskSection(title: "周任务", tasks: weeklyTasks, type: .weekly)
-                }
-                if !monthlyTasks.isEmpty {
-                    taskSection(title: "月任务", tasks: monthlyTasks, type: .monthly)
-                }
+        VStack(spacing: Spacing.section) {
+            if !dailyTasks.isEmpty {
+                taskSection(title: "日任务", icon: "sun.max", tasks: dailyTasks)
             }
-            .padding(.horizontal, Spacing.md)
+            if !weeklyTasks.isEmpty {
+                taskSection(title: "周任务", icon: "calendar", tasks: weeklyTasks)
+            }
+            if !monthlyTasks.isEmpty {
+                taskSection(title: "月任务", icon: "chart.bar", tasks: monthlyTasks)
+            }
         }
+        .padding(.horizontal, Spacing.screenHorizontal)
     }
 
-    @ViewBuilder
-    private func taskSection(title: String, tasks: [TaskItem], type: TaskType) -> some View {
+    private func taskSection(title: String, icon: String, tasks: [TaskItem]) -> some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
-            Text(title)
-                .font(.subheadline.bold())
-                .foregroundStyle(.secondary)
-                .padding(.horizontal, Spacing.xs)
-            ForEach(tasks) { task in
-                TaskRowView(task: task, isToday: isToday) {
-                    taskToComplete = task
+            DLSectionHeader(title, icon: icon)
+            VStack(spacing: Spacing.xs) {
+                ForEach(tasks) { task in
+                    DLGlassCard(tint: task.isCompleted ? Color.dlSuccess : Color.dlLavender, cornerRadius: CornerRadius.smallCard, padding: 0) {
+                        TaskRowView(task: task, isToday: isToday) {
+                            taskToComplete = task
+                        }
+                    }
                 }
-                .padding(.horizontal, Spacing.md)
-                .padding(.vertical, Spacing.sm)
-                .glassEffect(.regular, in: .rect(cornerRadius: 16))
             }
         }
     }
-
-    // MARK: - Data Loading
 
     private func loadAllTasks() async {
         guard let userId = appState.currentUser?.id else { return }
@@ -146,8 +164,6 @@ struct TodayView: View {
             weeklyTasks = result.weekly
             monthlyTasks = result.monthly
         } catch is CancellationError {
-            // CancellationError 是良性的：SwiftUI 视图重组或 supabase-swift token 刷新
-            // 都会取消进行中的请求。下次 refresh/.task 触发会重新拉取，不应展示为"失败"。
             return
         } catch let error as URLError where error.code == .cancelled {
             return

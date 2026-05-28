@@ -19,7 +19,6 @@ struct CreateTaskSheet: View {
         self.onCreated = onCreated
     }
 
-    /// Auto-calculated expire date based on task type
     private var computedExpireDate: Date {
         switch taskType {
         case .daily:
@@ -33,42 +32,80 @@ struct CreateTaskSheet: View {
 
     var body: some View {
         NavigationStack {
-            Form {
-                Section("任务信息") {
-                    TextField("任务标题", text: $title)
-                    TextField("备注（可选）", text: $notes, axis: .vertical)
-                        .lineLimit(2...4)
-                }
-
-                Section("任务设置") {
-                    Picker("任务类型", selection: $taskType) {
-                        ForEach(TaskType.allCases, id: \.self) { type in
-                            Text(type.displayName).tag(type)
+            ZStack {
+                DLBackground()
+                ScrollView {
+                    VStack(spacing: Spacing.section) {
+                        DLGlassPageHeader(title: "创建任务", subtitle: "安排一个可完成的小目标") {
+                            DLGlassBadge(icon: "bitcoinsign.circle.fill", text: "+\(coinsEarned)", tint: .dlCoin)
                         }
-                    }
-                    DatePicker("任务日期", selection: $taskDate, displayedComponents: .date)
-                    Stepper("金币奖励：\(coinsEarned)", value: $coinsEarned, in: 1...100)
-                }
 
-                if let errorMessage {
-                    Section {
-                        DLErrorBanner(message: errorMessage)
+                        DLGlassCard(tint: Color.dlLavender, cornerRadius: CornerRadius.panel) {
+                            VStack(spacing: Spacing.md) {
+                                DLGlassTextField(icon: "checkmark.circle", placeholder: "任务标题", text: $title)
+                                DLGlassTextField(icon: "text.alignleft", placeholder: "备注（可选）", text: $notes, axis: .vertical)
+                                    .lineLimit(2...4)
+                            }
+                        }
+                        .padding(.horizontal, Spacing.screenHorizontal)
+
+                        DLGlassCard(cornerRadius: CornerRadius.panel) {
+                            VStack(spacing: Spacing.md) {
+                                Picker("任务类型", selection: $taskType) {
+                                    ForEach(TaskType.allCases, id: \.self) { type in
+                                        Text(type.displayName).tag(type)
+                                    }
+                                }
+                                .pickerStyle(.segmented)
+
+                                DatePicker("任务日期", selection: $taskDate, displayedComponents: .date)
+                                    .foregroundStyle(Color.dlTextPrimary)
+
+                                VStack(alignment: .leading, spacing: Spacing.sm) {
+                                    HStack {
+                                        Label("金币奖励", systemImage: "bitcoinsign.circle.fill")
+                                            .font(.subheadline.weight(.medium))
+                                            .foregroundStyle(Color.dlTextPrimary)
+                                        Spacer()
+                                        Text("\(coinsEarned)")
+                                            .font(.headline.bold())
+                                            .foregroundStyle(Color.dlCoin)
+                                    }
+                                    Stepper("金币奖励：\(coinsEarned)", value: $coinsEarned, in: 1...100)
+                                        .labelsHidden()
+                                }
+                            }
+                        }
+                        .padding(.horizontal, Spacing.screenHorizontal)
+
+                        if let errorMessage {
+                            DLErrorBanner(message: errorMessage)
+                                .padding(.horizontal, Spacing.screenHorizontal)
+                        }
+
+                        DLPrimaryButton(
+                            action: { Task { await createTask() } },
+                            isLoading: isLoading,
+                            isDisabled: title.isEmpty
+                        ) {
+                            Text("创建")
+                        }
+                        .padding(.horizontal, Spacing.screenHorizontal)
                     }
+                    .padding(.vertical, Spacing.screenVertical)
                 }
+                .scrollContentBackground(.hidden)
             }
             .navigationTitle("创建任务")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(.hidden, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("取消") { dismiss() }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("创建") {
-                        Task { await createTask() }
-                    }
-                    .disabled(title.isEmpty || isLoading)
+                        .buttonStyle(.glass)
                 }
             }
+            .tint(Color.dlLavender)
         }
     }
 
@@ -86,9 +123,15 @@ struct CreateTaskSheet: View {
         defer { isLoading = false }
 
         do {
-            // Enforce 5 active task limit per type
-            let existing = try await taskService.fetchTasks(userId: userId, taskType: taskType, date: taskDate)
-            let pendingCount = existing.filter { $0.status == .pending }.count
+            let pendingCount: Int
+            switch taskType {
+            case .daily:
+                let existing = try await taskService.fetchTasks(userId: userId, taskType: .daily, date: taskDate)
+                pendingCount = existing.filter { $0.status == .pending }.count
+            case .weekly, .monthly:
+                let allPending = try await taskService.fetchAllPendingTasks(userId: userId, taskType: taskType)
+                pendingCount = allPending.count
+            }
             if pendingCount >= 5 {
                 errorMessage = "\(taskType.displayName)最多同时存在5个待完成任务"
                 return

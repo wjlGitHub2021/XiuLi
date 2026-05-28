@@ -17,37 +17,49 @@ struct LoginView: View {
 
     var body: some View {
         ZStack {
-            LinearGradient(
-                colors: [.blue.opacity(0.3), .purple.opacity(0.2), .orange.opacity(0.1)],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
+            DLBackground()
 
             VStack(spacing: Spacing.lg) {
                 Spacer()
 
+                // Logo card
+                RoundedRectangle(cornerRadius: 24)
+                    .frame(width: 88, height: 88)
+                    .glassEffect(.regular.tint(Color.dlLavender.opacity(0.25)), in: .rect(cornerRadius: 24))
+                    .overlay {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 40))
+                            .foregroundStyle(Color.dlLavender)
+                    }
+
                 Text("DailyLog")
-                    .font(.largeTitle.bold())
+                    .font(.system(size: 40, weight: .bold))
+                    .foregroundStyle(Color.dlTextPrimary)
 
                 Text("每日打卡，积累金币")
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.dlTextSecondary)
 
                 GlassEffectContainer(spacing: 12.0) {
                     VStack(spacing: Spacing.md) {
-                        TextField("邮箱", text: $email)
-                            .textContentType(.emailAddress)
-                            .keyboardType(.emailAddress)
-                            .autocorrectionDisabled()
-                            .textInputAutocapitalization(.never)
-                            .submitLabel(.next)
-                            .focused($focusedField, equals: .email)
-                            .onSubmit { focusedField = .password }
-                            .padding()
-                            .glassEffect(.regular, in: .rect(cornerRadius: 12))
+                        HStack(spacing: Spacing.sm) {
+                            Image(systemName: "envelope")
+                                .foregroundStyle(Color.dlTextSecondary)
+                            TextField("邮箱", text: $email)
+                                .textContentType(.emailAddress)
+                                .keyboardType(.emailAddress)
+                                .autocorrectionDisabled()
+                                .textInputAutocapitalization(.never)
+                                .submitLabel(.next)
+                                .focused($focusedField, equals: .email)
+                                .onSubmit { focusedField = .password }
+                        }
+                        .padding()
+                        .glassEffect(.regular, in: .capsule)
 
-                        HStack {
+                        HStack(spacing: Spacing.sm) {
+                            Image(systemName: "lock")
+                                .foregroundStyle(Color.dlTextSecondary)
                             Group {
                                 if isPasswordVisible {
                                     TextField("密码", text: $password)
@@ -74,12 +86,12 @@ struct LoginView: View {
                                 }
                             } label: {
                                 Image(systemName: isPasswordVisible ? "eye.slash" : "eye")
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(Color.dlTextSecondary)
                             }
                             .buttonStyle(.plain)
                         }
                         .padding()
-                        .glassEffect(.regular, in: .rect(cornerRadius: 12))
+                        .glassEffect(.regular, in: .capsule)
                     }
                 }
 
@@ -87,19 +99,13 @@ struct LoginView: View {
                     DLErrorBanner(message: errorMessage)
                 }
 
-                Button(action: { Task { await login() } }) {
-                    if isLoading {
-                        ProgressView()
-                            .tint(.white)
-                    } else {
-                        Text("登录")
-                    }
+                DLPrimaryButton(
+                    action: { Task { await login() } },
+                    isLoading: isLoading,
+                    isDisabled: email.isEmpty || password.isEmpty
+                ) {
+                    Text("登录")
                 }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 14)
-                .font(.headline)
-                .buttonStyle(.glassProminent)
-                .disabled(email.isEmpty || password.isEmpty || isLoading)
 
                 Spacer()
             }

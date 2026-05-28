@@ -6,7 +6,11 @@ struct ContentView: View {
     var body: some View {
         Group {
             if appState.isLoading {
-                ProgressView("加载中...")
+                ZStack {
+                    DLBackground()
+                    DLLoadingState()
+                        .padding(.horizontal, Spacing.screenHorizontal)
+                }
             } else if appState.isAuthenticated {
                 MainTabView()
             } else {

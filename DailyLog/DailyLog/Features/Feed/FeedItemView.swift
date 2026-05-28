@@ -5,12 +5,11 @@ struct FeedItemView: View {
     let currentUserId: UUID?
 
     var body: some View {
-        HStack(alignment: .top, spacing: Spacing.sm) {
-            // Type icon
+        HStack(alignment: .top, spacing: Spacing.md) {
             ZStack {
                 Circle()
-                    .fill(iconColor.opacity(0.15))
-                    .frame(width: 40, height: 40)
+                    .fill(iconColor.opacity(0.16))
+                    .frame(width: 42, height: 42)
                 Image(systemName: iconName)
                     .font(.system(size: 18, weight: .semibold))
                     .foregroundStyle(iconColor)
@@ -20,21 +19,21 @@ struct FeedItemView: View {
                 HStack {
                     Text(senderLabel)
                         .font(.caption.bold())
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Color.dlTextSecondary)
                     Spacer()
                     Text(relativeTime)
                         .font(.caption2)
-                        .foregroundStyle(.tertiary)
+                        .foregroundStyle(Color.dlTextSecondary.opacity(0.7))
                 }
 
                 Text(message.title)
-                    .font(.subheadline.weight(.medium))
-                    .foregroundStyle(.primary)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Color.dlTextPrimary)
 
                 if let body = message.body, !body.isEmpty {
                     Text(body)
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Color.dlTextSecondary)
                         .lineLimit(2)
                 }
             }
@@ -45,17 +44,17 @@ struct FeedItemView: View {
         switch message.type {
         case "task_complete": return "checkmark.circle.fill"
         case "reward_redeem": return "gift.fill"
-        case "spin_win":      return "star.fill"
-        default:              return "bell.fill"
+        case "spin_win": return "star.fill"
+        default: return "bell.fill"
         }
     }
 
     private var iconColor: Color {
         switch message.type {
-        case "task_complete": return .green
-        case "reward_redeem": return Color.dlCoin
-        case "spin_win":      return .purple
-        default:              return .blue
+        case "task_complete": return .dlSuccess
+        case "reward_redeem": return .dlCoin
+        case "spin_win": return .dlLavender
+        default: return .dlPlum
         }
     }
 

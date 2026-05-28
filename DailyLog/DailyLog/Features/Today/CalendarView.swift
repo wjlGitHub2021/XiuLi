@@ -15,26 +15,24 @@ struct CalendarView: View {
     private let weekdaySymbols = ["一", "二", "三", "四", "五", "六", "日"]
 
     var body: some View {
-        VStack(spacing: Spacing.sm) {
-            headerRow
-            weekdayLabels
-            if isExpanded {
-                monthGrid
-            } else {
-                weekRow
+        DLGlassCard(tint: Color.dlLavender) {
+            VStack(spacing: Spacing.sm) {
+                headerRow
+                weekdayLabels
+                if isExpanded {
+                    monthGrid
+                } else {
+                    weekRow
+                }
             }
         }
-        .padding(Spacing.md)
-        .glassEffect(.regular, in: .rect(cornerRadius: 20))
-        .padding(.horizontal, Spacing.md)
+        .padding(.horizontal, Spacing.screenHorizontal)
     }
-
-    // MARK: - Header
 
     private var headerRow: some View {
         HStack {
             if isExpanded {
-                Button(action: { withAnimation(.spring) { goToPrevMonth() } }) {
+                Button(action: { withAnimation(.spring(response: 0.28, dampingFraction: 0.82)) { goToPrevMonth() } }) {
                     Image(systemName: "chevron.left")
                         .font(.subheadline.bold())
                 }
@@ -43,16 +41,17 @@ struct CalendarView: View {
 
             Text(monthYearString)
                 .font(.headline)
+                .foregroundStyle(Color.dlTextPrimary)
                 .frame(maxWidth: .infinity, alignment: isExpanded ? .center : .leading)
 
-            Button(action: { withAnimation(.spring) { isExpanded.toggle() } }) {
+            Button(action: { withAnimation(.spring(response: 0.28, dampingFraction: 0.82)) { isExpanded.toggle() } }) {
                 Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
                     .font(.subheadline.bold())
             }
             .buttonStyle(.glass)
 
             if isExpanded {
-                Button(action: { withAnimation(.spring) { goToNextMonth() } }) {
+                Button(action: { withAnimation(.spring(response: 0.28, dampingFraction: 0.82)) { goToNextMonth() } }) {
                     Image(systemName: "chevron.right")
                         .font(.subheadline.bold())
                 }
@@ -61,20 +60,16 @@ struct CalendarView: View {
         }
     }
 
-    // MARK: - Weekday Labels
-
     private var weekdayLabels: some View {
         HStack(spacing: 0) {
             ForEach(weekdaySymbols, id: \.self) { symbol in
                 Text(symbol)
                     .font(.caption.bold())
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.dlTextSecondary)
                     .frame(maxWidth: .infinity)
             }
         }
     }
-
-    // MARK: - Week Row (collapsed)
 
     private var weekRow: some View {
         let days = currentWeekDays()
@@ -84,8 +79,6 @@ struct CalendarView: View {
             }
         }
     }
-
-    // MARK: - Month Grid (expanded)
 
     private var monthGrid: some View {
         let days = currentMonthDays()
@@ -100,8 +93,6 @@ struct CalendarView: View {
         }
     }
 
-    // MARK: - Day Cell
-
     @ViewBuilder
     private func dayCell(_ date: Date) -> some View {
         let isToday = calendar.isDateInToday(date)
@@ -109,7 +100,7 @@ struct CalendarView: View {
         let isCurrentMonth = calendar.isDate(date, equalTo: currentMonth, toGranularity: .month)
 
         Button(action: {
-            withAnimation(.spring(duration: 0.2)) {
+            withAnimation(.spring(response: 0.25, dampingFraction: 0.88)) {
                 selectedDate = date
             }
         }) {
@@ -118,16 +109,16 @@ struct CalendarView: View {
                 .foregroundStyle(
                     isSelected ? Color.white :
                     isToday ? Color.dlCoin :
-                    isCurrentMonth ? Color.primary : Color.primary.opacity(0.3)
+                    isCurrentMonth ? Color.dlTextPrimary : Color.dlTextPrimary.opacity(0.3)
                 )
                 .frame(width: 36, height: 36)
                 .background {
                     if isSelected {
                         Circle()
-                            .glassEffect(.regular.tint(Color.dlCoin), in: .circle)
+                            .glassEffect(.regular.tint(Color.dlLavender), in: .circle)
                     } else if isToday {
                         Circle()
-                            .glassEffect(.regular.tint(.yellow.opacity(0.4)), in: .circle)
+                            .glassEffect(.regular.tint(Color.dlCoin.opacity(0.38)), in: .circle)
                     }
                 }
         }
@@ -135,12 +126,9 @@ struct CalendarView: View {
         .frame(maxWidth: .infinity)
     }
 
-    // MARK: - Date Calculations
-
     private func currentWeekDays() -> [Date] {
         let today = calendar.startOfDay(for: Date())
         let weekday = calendar.component(.weekday, from: today)
-        // firstWeekday = 2 (Monday), so offset: Mon=0, Tue=1, ..., Sun=6
         let offset = (weekday - calendar.firstWeekday + 7) % 7
         guard let weekStart = calendar.date(byAdding: .day, value: -offset, to: today) else { return [] }
         return (0..<7).compactMap { calendar.date(byAdding: .day, value: $0, to: weekStart) }
@@ -153,7 +141,6 @@ struct CalendarView: View {
 
         let firstWeekday = calendar.component(.weekday, from: firstDay)
         let leadingBlanks = (firstWeekday - calendar.firstWeekday + 7) % 7
-
         let daysInMonth = calendar.range(of: .day, in: .month, for: currentMonth)?.count ?? 30
         let totalCells = leadingBlanks + daysInMonth
 

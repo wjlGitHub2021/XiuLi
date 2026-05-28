@@ -62,6 +62,15 @@ final class AppState {
 
     func refreshProfile() async {
         guard let userId = await authService.currentUserId() else { return }
-        currentUser = try? await profileService.fetchProfile(userId: userId)
+        do {
+            currentUser = try await profileService.fetchProfile(userId: userId)
+        } catch is CancellationError {
+            return
+        } catch let urlError as URLError where urlError.code == .cancelled {
+            return
+        } catch {
+            // 刷新失败时保留旧用户，避免下拉刷新或临时网络错误让 UI 看起来像退出登录。
+            print("refreshProfile failed: \(error)")
+        }
     }
 }

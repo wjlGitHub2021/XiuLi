@@ -11,30 +11,36 @@ struct RewardsView: View {
     @State private var errorMessage: String?
     @State private var showError = false
     @State private var showSpinWheel = false
-    // Bug #5: 并发锁，防止双击 / 并发兑换
     @State private var isRedeeming = false
 
     private let rewardService = RewardService()
 
-    // Bug #27: 过滤掉 cost == nil 的 direct 奖励（DB schema 兼容）
     var directRewards: [Reward] {
         rewards.filter { $0.type == "direct" && $0.cost != nil }
     }
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                GlassEffectContainer(spacing: 16.0) {
-                    VStack(spacing: Spacing.md) {
+            ZStack {
+                DLBackground()
+                ScrollView {
+                    VStack(spacing: Spacing.section) {
+                        DLGlassPageHeader(title: "奖励", subtitle: "用金币兑换一点开心") {
+                            DLGlassBadge(icon: "bitcoinsign.circle.fill",
+                                         text: "\(appState.currentUser?.coins ?? 0)",
+                                         tint: .dlCoin)
+                        }
                         coinBalanceHeader
                         spinWheelCard
                         directRewardsSection
                     }
-                    .padding(.horizontal, Spacing.md)
-                    .padding(.vertical, Spacing.sm)
+                    .padding(.vertical, Spacing.screenVertical)
                 }
+                .scrollContentBackground(.hidden)
             }
             .navigationTitle("奖励")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(.hidden, for: .navigationBar)
             .refreshable { await loadRewards() }
             .navigationDestination(isPresented: $showSpinWheel) {
                 SpinWheelView()
@@ -43,7 +49,6 @@ struct RewardsView: View {
         .task { await loadRewards() }
         .alert("确认兑换", isPresented: $showRedeemConfirm, presenting: selectedReward) { reward in
             Button("取消", role: .cancel) {}
-            // Bug #5: 禁用并发提交，guard isRedeeming 在 redeem 内原子完成
             Button("兑换") {
                 Task { await redeem(reward: reward) }
             }
@@ -64,72 +69,78 @@ struct RewardsView: View {
     }
 
     private var coinBalanceHeader: some View {
-        HStack(spacing: Spacing.sm) {
-            Image(systemName: "bitcoinsign.circle.fill")
-                .font(.title2)
-                .foregroundStyle(Color.dlCoin)
-            Text("\(appState.currentUser?.coins ?? 0) 金币")
-                .font(.title2.bold())
-            Spacer()
-            Text("我的余额")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+        DLGlassCard(tint: Color.dlCoin, cornerRadius: CornerRadius.panel) {
+            HStack(spacing: Spacing.md) {
+                ZStack {
+                    Circle()
+                        .fill(Color.dlCoin.opacity(0.18))
+                        .frame(width: 58, height: 58)
+                    Image(systemName: "bitcoinsign.circle.fill")
+                        .font(.title)
+                        .foregroundStyle(Color.dlCoin)
+                }
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("\(appState.currentUser?.coins ?? 0) 金币")
+                        .font(.title.bold())
+                        .foregroundStyle(Color.dlTextPrimary)
+                    Text("我的余额")
+                        .font(.subheadline)
+                        .foregroundStyle(Color.dlTextSecondary)
+                }
+                Spacer()
+            }
         }
-        .padding(Spacing.md)
-        .glassEffect(.regular.tint(.yellow), in: .rect(cornerRadius: 20))
+        .padding(.horizontal, Spacing.screenHorizontal)
     }
 
     private var spinWheelCard: some View {
-        VStack(spacing: Spacing.sm) {
-            HStack {
-                Image(systemName: "sparkles")
-                    .font(.title2)
-                    .foregroundStyle(.purple)
-                Text("转盘抽奖")
-                    .font(.headline)
-                Spacer()
-                Text("每次 10 金币")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+        DLGlassCard(tint: Color.dlLavender, cornerRadius: CornerRadius.panel) {
+            VStack(spacing: Spacing.md) {
+                HStack {
+                    Label("转盘抽奖", systemImage: "sparkles")
+                        .font(.headline)
+                        .foregroundStyle(Color.dlTextPrimary)
+                    Spacer()
+                    Text("每次 10 金币")
+                        .font(.subheadline)
+                        .foregroundStyle(Color.dlTextSecondary)
+                }
+                Button {
+                    showSpinWheel = true
+                } label: {
+                    Label("开始转盘", systemImage: "arrow.trianglehead.2.clockwise.rotate.90")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 13)
+                }
+                .buttonStyle(.glassProminent)
+                .tint(Color.dlLavender)
             }
-            Button {
-                showSpinWheel = true
-            } label: {
-                Label("开始转盘", systemImage: "arrow.trianglehead.2.clockwise.rotate.90")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, Spacing.sm)
-            }
-            .buttonStyle(.glass)
         }
-        .padding(Spacing.md)
-        .glassEffect(.regular.tint(.purple), in: .rect(cornerRadius: 20))
+        .padding(.horizontal, Spacing.screenHorizontal)
     }
 
     private var directRewardsSection: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
-            Text("直接兑换")
-                .font(.headline)
-                .padding(.horizontal, Spacing.sm)
+            DLSectionHeader("直接兑换", icon: "gift")
+                .padding(.horizontal, Spacing.screenHorizontal + Spacing.xs)
 
             if isLoading {
-                ProgressView()
-                    .frame(maxWidth: .infinity)
-                    .padding(Spacing.md)
-                    .glassEffect(.regular, in: .rect(cornerRadius: 16))
+                VStack(spacing: Spacing.xs) {
+                    ForEach(0..<3, id: \.self) { _ in DLSkeletonRow() }
+                }
+                .padding(.horizontal, Spacing.screenHorizontal)
             } else if directRewards.isEmpty {
-                Text("暂无可兑换奖励")
-                    .foregroundStyle(.secondary)
-                    .padding(Spacing.md)
-                    .frame(maxWidth: .infinity)
-                    .glassEffect(.regular, in: .rect(cornerRadius: 16))
+                DLEmptyState(icon: "gift", title: "暂无可兑换奖励")
+                    .padding(.horizontal, Spacing.screenHorizontal)
             } else {
                 VStack(spacing: Spacing.xs) {
                     ForEach(directRewards) { reward in
                         rewardRow(reward)
                     }
                 }
-                .glassEffect(.regular, in: .rect(cornerRadius: 16))
+                .glassEffect(.regular, in: .rect(cornerRadius: CornerRadius.card))
+                .padding(.horizontal, Spacing.screenHorizontal)
             }
         }
     }
@@ -138,17 +149,19 @@ struct RewardsView: View {
         HStack(spacing: Spacing.md) {
             Text(reward.icon)
                 .font(.title2)
-                .frame(width: 40, height: 40)
+                .frame(width: 42, height: 42)
+                .glassEffect(.regular.tint(Color.dlLavender.opacity(0.14)), in: .circle)
             VStack(alignment: .leading, spacing: 2) {
                 Text(reward.name)
                     .font(.body.bold())
+                    .foregroundStyle(Color.dlTextPrimary)
                 if let desc = reward.description {
                     Text(desc)
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Color.dlTextSecondary)
                 }
             }
-            Spacer()
+            Spacer(minLength: Spacing.sm)
             Button {
                 selectedReward = reward
                 showRedeemConfirm = true
@@ -161,17 +174,15 @@ struct RewardsView: View {
                 }
                 .font(.subheadline.bold())
                 .padding(.horizontal, Spacing.sm)
-                .padding(.vertical, 6)
+                .padding(.vertical, 7)
             }
             .buttonStyle(.glass)
-            // Bug #5: 余额不足时禁用兑换按钮
             .disabled(isRedeeming || (reward.cost ?? 0) > (appState.currentUser?.coins ?? 0))
         }
         .padding(.horizontal, Spacing.md)
         .padding(.vertical, Spacing.sm)
     }
 
-    // Bug #18: try? 改 do/catch，加载失败用 alert 展示错误
     private func loadRewards() async {
         isLoading = true
         defer { isLoading = false }
@@ -185,10 +196,8 @@ struct RewardsView: View {
         }
     }
 
-    // Bug #5: @MainActor 保证并发锁原子 check-and-set；Bug #16: catch 也刷新余额
     @MainActor
     private func redeem(reward: Reward) async {
-        // 原子检查：第一个 await 之前同步设置锁
         guard !isRedeeming else { return }
         isRedeeming = true
         defer { isRedeeming = false }
@@ -205,7 +214,6 @@ struct RewardsView: View {
         } catch {
             errorMessage = error.localizedDescription
             showError = true
-            // Bug #16: 即使请求失败（超时后服务端可能已扣），也刷新余额保证最终一致
             await appState.refreshProfile()
         }
     }
