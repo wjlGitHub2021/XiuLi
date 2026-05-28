@@ -14,12 +14,17 @@ struct DailyLogApp: App {
 }
 
 class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
+    private let notificationService = NotificationService()
+    private let authService = AuthService()
+
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
         Task {
-            let service = NotificationService()
-            let authService = AuthService()
             if let userId = await authService.currentUserId() {
-                try? await service.registerDeviceToken(deviceToken, userId: userId)
+                do {
+                    try await notificationService.registerDeviceToken(deviceToken, userId: userId)
+                } catch {
+                    print("注册推送 token 失败: \(error)")
+                }
             }
         }
     }

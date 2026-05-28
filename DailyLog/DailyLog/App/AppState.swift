@@ -7,14 +7,22 @@ final class AppState {
     var isAuthenticated = false
     var isLoading = true
     var currentUser: User?
+    /// 登录后加载用户信息失败时的错误提示，由 LoginView 监听展示
+    var loginError: String?
 
     private let authService = AuthService()
     private let profileService = ProfileService()
+    private var isRestoringSession = false
 
     func restoreSession() async {
-        guard !isAuthenticated else { return }
+        // 防止 ContentView.task 多次触发导致重入
+        guard !isRestoringSession else { return }
+        isRestoringSession = true
         isLoading = true
-        defer { isLoading = false }
+        defer {
+            isLoading = false
+            isRestoringSession = false
+        }
 
         let hasSession = await authService.restoreSession()
         if hasSession, let userId = await authService.currentUserId() {
@@ -34,7 +42,11 @@ final class AppState {
             currentUser = try await profileService.fetchProfile(userId: userId)
             isAuthenticated = true
         } catch {
+            // fetchProfile 失败：清理已建立的 session，避免 UI 卡在登录页无反应
+            try? await authService.signOut()
             isAuthenticated = false
+            currentUser = nil
+            loginError = "登录成功但加载用户信息失败，请重试"
         }
     }
 

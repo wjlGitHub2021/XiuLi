@@ -74,12 +74,17 @@ struct LoginView: View {
 
     private func login() async {
         errorMessage = nil
+        appState.loginError = nil
         isLoading = true
         defer { isLoading = false }
 
         do {
             try await authService.signIn(email: email, password: password)
             await appState.onLoginSuccess()
+            // onLoginSuccess 失败时会设置 appState.loginError，映射到本地 errorMessage
+            if let appError = appState.loginError {
+                errorMessage = appError
+            }
         } catch {
             errorMessage = mapError(error)
         }
