@@ -29,8 +29,7 @@ struct DLErrorBanner: View {
         }
         .padding(Spacing.md)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.ultraThinMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .glassEffect(.regular.tint(.orange), in: .rect(cornerRadius: 12))
     }
 }
 
@@ -50,10 +49,8 @@ struct DLLoadingButton: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 14)
-        .background(Color.dlPrimary)
-        .foregroundStyle(.white)
         .font(.headline)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .buttonStyle(.glassProminent)
         .disabled(isLoading)
     }
 }

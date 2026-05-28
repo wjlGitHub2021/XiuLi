@@ -14,6 +14,7 @@ struct TaskRowView: View {
                     .font(.title2)
                     .foregroundStyle(task.isCompleted ? .green : .secondary)
             }
+            .buttonStyle(.glass)
             .disabled(task.isCompleted)
             .accessibilityLabel(task.isCompleted ? "已完成" : "标记为完成")
 

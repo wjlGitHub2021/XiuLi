@@ -12,31 +12,33 @@ struct TodayView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                Picker("任务类型", selection: $selectedType) {
-                    ForEach(TaskType.allCases, id: \.self) { type in
-                        Text(type.displayName).tag(type)
+            ScrollView {
+                VStack(spacing: Spacing.md) {
+                    Picker("任务类型", selection: $selectedType) {
+                        ForEach(TaskType.allCases, id: \.self) { type in
+                            Text(type.displayName).tag(type)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                    .padding(.horizontal, Spacing.md)
+
+                    if let errorMessage {
+                        DLErrorBanner(message: errorMessage)
+                            .padding(.horizontal, Spacing.md)
+                    }
+
+                    if isLoading && tasks.isEmpty {
+                        ProgressView()
+                            .padding(.top, 100)
+                    } else if tasks.isEmpty {
+                        DLEmptyState(message: emptyMessage)
+                    } else {
+                        taskList
                     }
                 }
-                .pickerStyle(.segmented)
-                .padding(.horizontal, Spacing.md)
                 .padding(.vertical, Spacing.sm)
-
-                if let errorMessage {
-                    DLErrorBanner(message: errorMessage)
-                        .padding(.horizontal, Spacing.md)
-                }
-
-                if isLoading && tasks.isEmpty {
-                    Spacer()
-                    ProgressView()
-                    Spacer()
-                } else if tasks.isEmpty {
-                    DLEmptyState(message: emptyMessage)
-                } else {
-                    taskList
-                }
             }
+            .refreshable { await loadTasks() }
             .navigationTitle("今日")
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
@@ -46,6 +48,7 @@ struct TodayView: View {
                     Button(action: { showCreateSheet = true }) {
                         Image(systemName: "plus.circle.fill")
                     }
+                    .buttonStyle(.glass)
                 }
             }
             .sheet(isPresented: $showCreateSheet) {
@@ -67,19 +70,26 @@ struct TodayView: View {
                 Text("\(user.coins)")
                     .font(.subheadline.bold())
             }
+            .padding(.horizontal, Spacing.sm)
+            .padding(.vertical, Spacing.xs)
+            .glassEffect(.regular.tint(.yellow), in: .capsule)
         }
     }
 
     private var taskList: some View {
-        List {
-            ForEach(tasks) { task in
-                TaskRowView(task: task) {
-                    Task { await completeTask(task) }
+        GlassEffectContainer(spacing: 8.0) {
+            VStack(spacing: Spacing.sm) {
+                ForEach(tasks) { task in
+                    TaskRowView(task: task) {
+                        Task { await completeTask(task) }
+                    }
+                    .padding(.horizontal, Spacing.md)
+                    .padding(.vertical, Spacing.sm)
+                    .glassEffect(.regular, in: .rect(cornerRadius: 16))
                 }
             }
+            .padding(.horizontal, Spacing.md)
         }
-        .listStyle(.plain)
-        .refreshable { await loadTasks() }
     }
 
     private var emptyMessage: String {

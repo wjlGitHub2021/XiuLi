@@ -10,45 +10,63 @@ struct LoginView: View {
     private let authService = AuthService()
 
     var body: some View {
-        VStack(spacing: Spacing.lg) {
-            Spacer()
+        ZStack {
+            LinearGradient(
+                colors: [.blue.opacity(0.3), .purple.opacity(0.2), .orange.opacity(0.1)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
 
-            Text("DailyLog")
-                .font(.largeTitle.bold())
+            VStack(spacing: Spacing.lg) {
+                Spacer()
 
-            Text("每日打卡，积累金币")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+                Text("DailyLog")
+                    .font(.largeTitle.bold())
 
-            VStack(spacing: Spacing.md) {
-                TextField("邮箱", text: $email)
-                    .textContentType(.emailAddress)
-                    .keyboardType(.emailAddress)
-                    .autocorrectionDisabled()
-                    .textInputAutocapitalization(.never)
-                    .padding()
-                    .background(.ultraThinMaterial)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                Text("每日打卡，积累金币")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
 
-                SecureField("密码", text: $password)
-                    .textContentType(.password)
-                    .padding()
-                    .background(.ultraThinMaterial)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                GlassEffectContainer(spacing: 12.0) {
+                    VStack(spacing: Spacing.md) {
+                        TextField("邮箱", text: $email)
+                            .textContentType(.emailAddress)
+                            .keyboardType(.emailAddress)
+                            .autocorrectionDisabled()
+                            .textInputAutocapitalization(.never)
+                            .padding()
+                            .glassEffect(.regular, in: .rect(cornerRadius: 12))
+
+                        SecureField("密码", text: $password)
+                            .textContentType(.password)
+                            .padding()
+                            .glassEffect(.regular, in: .rect(cornerRadius: 12))
+                    }
+                }
+
+                if let errorMessage {
+                    DLErrorBanner(message: errorMessage)
+                }
+
+                Button(action: { Task { await login() } }) {
+                    if isLoading {
+                        ProgressView()
+                            .tint(.white)
+                    } else {
+                        Text("登录")
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+                .font(.headline)
+                .buttonStyle(.glassProminent)
+                .disabled(email.isEmpty || password.isEmpty || isLoading)
+
+                Spacer()
             }
-
-            if let errorMessage {
-                DLErrorBanner(message: errorMessage)
-            }
-
-            DLLoadingButton(title: "登录", isLoading: isLoading) {
-                Task { await login() }
-            }
-            .disabled(email.isEmpty || password.isEmpty)
-
-            Spacer()
+            .padding(.horizontal, Spacing.lg)
         }
-        .padding(.horizontal, Spacing.lg)
         .onTapGesture {
             UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
         }
