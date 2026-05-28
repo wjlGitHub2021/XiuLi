@@ -1,6 +1,6 @@
 import Foundation
 
-struct CompleteTaskResponse: Codable {
+struct CompleteTaskResponse: Codable, Sendable {
     let task: TaskItem
     let coins: Int
     let totalCompleted: Int

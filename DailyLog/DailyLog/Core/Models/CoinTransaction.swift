@@ -1,6 +1,6 @@
 import Foundation
 
-struct CoinTransaction: Codable, Identifiable {
+struct CoinTransaction: Codable, Identifiable, Sendable {
     let id: UUID
     let userId: UUID
     let amount: Int

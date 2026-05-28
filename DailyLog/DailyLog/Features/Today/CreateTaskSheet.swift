@@ -69,22 +69,26 @@ struct CreateTaskSheet: View {
         }
     }
 
+    private static let dateFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd"
+        f.locale = Locale(identifier: "en_US_POSIX")
+        return f
+    }()
+
     private func createTask() async {
         guard let userId = appState.currentUser?.id else { return }
         isLoading = true
         errorMessage = nil
         defer { isLoading = false }
 
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd"
-
         let params = CreateTaskParams(
             userId: userId,
             title: title,
             notes: notes.isEmpty ? nil : notes,
             taskType: taskType.rawValue,
-            taskDate: dateFormatter.string(from: taskDate),
-            expireDate: hasExpireDate ? dateFormatter.string(from: expireDate ?? taskDate) : nil,
+            taskDate: Self.dateFormatter.string(from: taskDate),
+            expireDate: hasExpireDate ? Self.dateFormatter.string(from: expireDate ?? taskDate) : nil,
             coinsEarned: coinsEarned,
             orderInDay: 0
         )

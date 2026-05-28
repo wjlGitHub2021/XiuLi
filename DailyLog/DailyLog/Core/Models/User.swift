@@ -1,6 +1,6 @@
 import Foundation
 
-struct User: Codable, Identifiable {
+struct User: Codable, Identifiable, Sendable {
     let id: UUID
     var nickname: String
     var avatarUrl: String?

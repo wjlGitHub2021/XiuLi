@@ -49,6 +49,9 @@ struct LoginView: View {
             Spacer()
         }
         .padding(.horizontal, Spacing.lg)
+        .onTapGesture {
+            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+        }
     }
 
     private func login() async {

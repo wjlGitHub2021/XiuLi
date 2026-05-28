@@ -1,6 +1,5 @@
 import Foundation
 import Supabase
-import Auth
 
 final class AuthService {
     private let client = AppSupabase.client
@@ -13,14 +12,16 @@ final class AuthService {
         try await client.auth.signOut()
     }
 
-    func restoreSession() async throws -> Bool {
-        _ = try await client.auth.session
-        return true
+    func restoreSession() async -> Bool {
+        do {
+            _ = try await client.auth.session
+            return true
+        } catch {
+            return false
+        }
     }
 
-    var currentUserId: UUID? {
-        get async {
-            try? await client.auth.session.user.id
-        }
+    func currentUserId() async -> UUID? {
+        try? await client.auth.session.user.id
     }
 }

@@ -52,12 +52,10 @@ struct TodayView: View {
                 CreateTaskSheet(taskType: selectedType) { newTask in
                     tasks.insert(newTask, at: 0)
                 }
+                .environment(appState)
             }
         }
-        .task { await loadTasks() }
-        .onChange(of: selectedType) { _, _ in
-            Task { await loadTasks() }
-        }
+        .task(id: selectedType) { await loadTasks() }
     }
 
     @ViewBuilder

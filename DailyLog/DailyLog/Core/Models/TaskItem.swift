@@ -19,7 +19,7 @@ enum TaskStatus: String, Codable {
     case completed
 }
 
-struct TaskItem: Codable, Identifiable {
+struct TaskItem: Codable, Identifiable, Sendable {
     let id: UUID
     let userId: UUID
     var title: String

@@ -1,6 +1,7 @@
 import Foundation
 import Observation
 
+@MainActor
 @Observable
 final class AppState {
     var isAuthenticated = false
@@ -11,23 +12,24 @@ final class AppState {
     private let profileService = ProfileService()
 
     func restoreSession() async {
+        guard !isAuthenticated else { return }
         isLoading = true
         defer { isLoading = false }
 
-        do {
-            let hasSession = try await authService.restoreSession()
-            if hasSession, let userId = await authService.currentUserId {
+        let hasSession = await authService.restoreSession()
+        if hasSession, let userId = await authService.currentUserId() {
+            do {
                 currentUser = try await profileService.fetchProfile(userId: userId)
                 isAuthenticated = true
+            } catch {
+                isAuthenticated = false
+                currentUser = nil
             }
-        } catch {
-            isAuthenticated = false
-            currentUser = nil
         }
     }
 
     func onLoginSuccess() async {
-        guard let userId = await authService.currentUserId else { return }
+        guard let userId = await authService.currentUserId() else { return }
         do {
             currentUser = try await profileService.fetchProfile(userId: userId)
             isAuthenticated = true
@@ -43,7 +45,7 @@ final class AppState {
     }
 
     func refreshProfile() async {
-        guard let userId = await authService.currentUserId else { return }
+        guard let userId = await authService.currentUserId() else { return }
         currentUser = try? await profileService.fetchProfile(userId: userId)
     }
 }
