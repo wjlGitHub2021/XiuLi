@@ -190,10 +190,10 @@ struct ProfileView: View {
 
     private func loadData() async {
         guard let userId = appState.currentUser?.id else { return }
-        // Bug #14: 进入前先清空旧数据，防止退出登录后残留
+        // Nit #14: 先置 isLoading=true，再清空，loading 态盖住空列表避免闪烁
+        isLoading = true
         transactions = []
         streak = 0
-        isLoading = true
         isInitializing = true
         defer { isLoading = false }
         // Bug #13: 强制拉最新 users 数据，保证金币余额一致性
@@ -228,14 +228,15 @@ struct ProfileView: View {
         await appState.refreshProfile()
     }
 
+    @MainActor
     private func handlePhotoSelection(_ item: PhotosPickerItem?) async {
-        // Bug #4: 入口加并发锁，防止连点重复上传
-        guard !isUploadingAvatar else { return }
+        // Fix #4: @MainActor 确保 check-and-set 在同一个 run loop tick 内同步完成，彻底消除 TOCTOU
+        if isUploadingAvatar { return }
+        isUploadingAvatar = true  // 必须在第一个 await 之前
+        defer { isUploadingAvatar = false }
         guard let item, let userId = appState.currentUser?.id else { return }
         // Bug #3: 原始 Data 直接传给 ProfileService，由 Service 负责降采样+压缩
         guard let data = try? await item.loadTransferable(type: Data.self) else { return }
-        isUploadingAvatar = true
-        defer { isUploadingAvatar = false }
         do {
             // Bug #25: 上传失败时展示错误
             _ = try await profileService.uploadAvatar(userId: userId, imageData: data)

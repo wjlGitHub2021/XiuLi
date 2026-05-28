@@ -25,18 +25,20 @@ final class ProfileService {
     }
 
     func uploadAvatar(userId: UUID, imageData: Data) async throws -> String {
-        // Bug #3: 先降采样到 1024×1024 再压缩，避免大图 OOM
-        guard let sourceImage = UIImage(data: imageData) else {
+        // Nit #3: 改用 CGImageSourceCreateThumbnailAtIndex，ImageIO 直接读 thumbnail
+        // 跳过完整解码，真正避免 48MP 原图 OOM
+        guard let source = CGImageSourceCreateWithData(imageData as CFData, nil) else {
             throw URLError(.badServerResponse)
         }
-        let maxDimension: CGFloat = 1024
-        let size = sourceImage.size
-        let scale = min(maxDimension / size.width, maxDimension / size.height, 1.0)
-        let targetSize = CGSize(width: size.width * scale, height: size.height * scale)
-        let renderer = UIGraphicsImageRenderer(size: targetSize)
-        let resized = renderer.image { _ in
-            sourceImage.draw(in: CGRect(origin: .zero, size: targetSize))
+        let thumbOptions: [CFString: Any] = [
+            kCGImageSourceCreateThumbnailFromImageAlways: true,
+            kCGImageSourceThumbnailMaxPixelSize: 1024,
+            kCGImageSourceCreateThumbnailWithTransform: true
+        ]
+        guard let cgImage = CGImageSourceCreateThumbnailAtIndex(source, 0, thumbOptions as CFDictionary) else {
+            throw URLError(.badServerResponse)
         }
+        let resized = UIImage(cgImage: cgImage)
         guard let compressedData = resized.jpegData(compressionQuality: 0.8) else {
             throw URLError(.badServerResponse)
         }
@@ -88,17 +90,20 @@ final class ProfileService {
         let today = calendar.startOfDay(for: Date())
         let yesterday = calendar.date(byAdding: .day, value: -1, to: today)!
 
-        // Bug #12: 基准点改为 today。
-        // 最新打卡日必须是今天或昨天，否则已断卡
-        let latestDate = uniqueDates[0]
-        guard latestDate == today || latestDate == yesterday else { return 0 }
+        // Fix #12: 基准点改为最新打卡日（latest），而非 today
+        // "昨天打卡今天未打" → latest=yesterday，streak 从 yesterday 起向前数 = 1（正确）
+        // 若最新打卡日既非今天也非昨天，视为断卡
+        let latest = uniqueDates[0]
+        guard calendar.isDate(latest, inSameDayAs: today) ||
+              calendar.isDate(latest, inSameDayAs: yesterday) else { return 0 }
 
-        // 从 today 起往前逐天检查
-        var streak = 0
-        for i in 0..<uniqueDates.count {
-            let expected = calendar.date(byAdding: .day, value: -i, to: today)!
+        // 从 latest 起向前逐天连续计数
+        var streak = 1
+        var expected = calendar.date(byAdding: .day, value: -1, to: latest)!
+        for i in 1..<uniqueDates.count {
             if calendar.isDate(uniqueDates[i], inSameDayAs: expected) {
                 streak += 1
+                expected = calendar.date(byAdding: .day, value: -1, to: expected)!
             } else {
                 break
             }
