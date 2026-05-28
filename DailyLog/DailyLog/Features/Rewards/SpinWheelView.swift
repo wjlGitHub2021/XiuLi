@@ -26,7 +26,7 @@ struct SpinWheelView: View {
             return Array(base) + Array(repeating: Reward(
                 id: UUID(), name: "?", description: nil,
                 icon: "🎁", cost: nil, type: "spin",
-                probability: nil, sortOrder: nil, isActive: true
+                probability: nil, sortOrder: nil, isActive: true, tier: nil
             ), count: 8 - base.count)
         }
         return Array(base)

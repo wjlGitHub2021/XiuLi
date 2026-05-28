@@ -10,15 +10,13 @@ struct ProfileView: View {
     @State private var isUploadingAvatar = false
     @State private var streak: Int = 0
     @State private var pushEnabled: Bool = false
-    // Bug #15: 防止 loadData 初始赋值 pushEnabled 时误触发 DB 写
     @State private var isInitializing = true
-    // Bug #25: 错误反馈
     @State private var errorMessage: String?
     @State private var showError = false
-    // 附加任务 nit: 复用 NotificationService 实例
     @State private var notificationService = NotificationService()
-    // Bug #4 后续：刚上传的头像直接用本地 UIImage 渲染，避免 AsyncImage 走 CDN 冷启动
     @State private var localAvatarImage: UIImage?
+    @State private var showNicknameSheet = false
+    @State private var editingNickname = ""
 
     private let profileService = ProfileService()
 
@@ -59,6 +57,15 @@ struct ProfileView: View {
             Button("好") { errorMessage = nil }
         } message: {
             Text(errorMessage ?? "")
+        }
+        .alert("修改昵称", isPresented: $showNicknameSheet) {
+            TextField("输入新昵称", text: $editingNickname)
+            Button("取消", role: .cancel) {}
+            Button("保存") {
+                Task { await saveNickname() }
+            }
+        } message: {
+            Text("请输入新的昵称")
         }
     }
 
@@ -130,16 +137,22 @@ struct ProfileView: View {
                 }
 
                 VStack(alignment: .leading, spacing: Spacing.xs) {
-                    HStack(alignment: .firstTextBaseline, spacing: Spacing.xs) {
-                        Text(appState.currentUser?.nickname ?? "加载中")
-                            .font(.title2.bold())
-                            .foregroundStyle(Color.dlTextPrimary)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.8)
-                        Image(systemName: "chevron.right")
-                            .font(.caption.bold())
-                            .foregroundStyle(Color.dlTextSecondary.opacity(0.65))
+                    Button {
+                        editingNickname = appState.currentUser?.nickname ?? ""
+                        showNicknameSheet = true
+                    } label: {
+                        HStack(alignment: .firstTextBaseline, spacing: Spacing.xs) {
+                            Text(appState.currentUser?.nickname ?? "加载中")
+                                .font(.title2.bold())
+                                .foregroundStyle(Color.dlTextPrimary)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.8)
+                            Image(systemName: "chevron.right")
+                                .font(.caption.bold())
+                                .foregroundStyle(Color.dlTextSecondary.opacity(0.65))
+                        }
                     }
+                    .buttonStyle(.plain)
 
                     HStack(spacing: Spacing.xs) {
                         Image(systemName: "bitcoinsign.circle.fill")
@@ -162,7 +175,7 @@ struct ProfileView: View {
     }
 
     private var statsSection: some View {
-        HStack(spacing: Spacing.sm) {
+        HStack(spacing: Spacing.md) {
             statTile(
                 icon: "checkmark.circle.fill",
                 iconTint: Color.dlSuccess,
@@ -182,8 +195,8 @@ struct ProfileView: View {
     }
 
     private func statTile(icon: String, iconTint: Color, value: String, unit: String, label: String) -> some View {
-        DLGlassCard(tint: iconTint) {
-            VStack(alignment: .leading, spacing: Spacing.sm) {
+        DLGlassCard(tint: iconTint, padding: Spacing.sm) {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
                 HStack(spacing: Spacing.xs) {
                     Image(systemName: icon)
                         .font(.subheadline)
@@ -194,13 +207,14 @@ struct ProfileView: View {
                 }
                 HStack(alignment: .lastTextBaseline, spacing: 2) {
                     Text(value)
-                        .font(.title2.bold())
+                        .font(.title3.bold())
                         .foregroundStyle(Color.dlTextPrimary)
                     Text(unit)
                         .font(.caption)
                         .foregroundStyle(Color.dlTextSecondary)
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 
@@ -235,6 +249,7 @@ struct ProfileView: View {
                     }
                 }
                 .glassEffect(.regular, in: .rect(cornerRadius: CornerRadius.card))
+                .dlGlassChrome(cornerRadius: CornerRadius.card)
                 .padding(.horizontal, Spacing.screenHorizontal)
             }
         }
@@ -276,7 +291,7 @@ struct ProfileView: View {
     }
 
     private var settingsSection: some View {
-        VStack(spacing: Spacing.sm) {
+        VStack(spacing: Spacing.lg) {
             DLGlassCard(tint: Color.dlLavender) {
                 HStack(spacing: Spacing.md) {
                     ZStack {
@@ -315,14 +330,14 @@ struct ProfileView: View {
                 HStack(spacing: Spacing.sm) {
                     Image(systemName: "rectangle.portrait.and.arrow.right")
                     Text("退出登录")
-                        .font(.headline)
+                        .font(.body.weight(.medium))
                 }
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, Spacing.md)
+                .padding(.vertical, 14)
                 .foregroundStyle(Color.dlError)
             }
-            .buttonStyle(.plain)
-            .glassEffect(.regular.tint(Color.dlError.opacity(0.18)), in: .rect(cornerRadius: CornerRadius.card))
+            .buttonStyle(.glass)
+            .tint(.dlError)
         }
         .padding(.horizontal, Spacing.screenHorizontal)
     }
@@ -354,6 +369,7 @@ struct ProfileView: View {
         isInitializing = false
     }
 
+    @MainActor
     private func togglePush(_ enabled: Bool) async {
         // 附加任务 nit: 使用复用的 notificationService 实例
         if enabled {
@@ -404,5 +420,21 @@ struct ProfileView: View {
             showError = true
         }
         await appState.refreshProfile()
+    }
+
+    private func saveNickname() async {
+        let trimmed = editingNickname.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, let userId = appState.currentUser?.id else { return }
+        do {
+            try await AppSupabase.client.from("users")
+                .update(["nickname": trimmed])
+                .eq("id", value: userId.uuidString)
+                .execute()
+            await appState.refreshProfile()
+        } catch is CancellationError {
+        } catch {
+            errorMessage = "修改昵称失败：\(error.localizedDescription)"
+            showError = true
+        }
     }
 }

@@ -10,6 +10,9 @@ struct TodayView: View {
     @State private var errorMessage: String?
     @State private var showCreateSheet = false
     @State private var taskToComplete: TaskItem?
+    @State private var taskToDelete: TaskItem?
+    @State private var showDeleteConfirm = false
+    @State private var taskToEdit: TaskItem?
 
     private let taskService = TaskService()
 
@@ -59,11 +62,10 @@ struct TodayView: View {
                 .scrollContentBackground(.hidden)
             }
             .refreshable { await loadAllTasks() }
-            .navigationTitle("今日")
+            .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(.hidden, for: .navigationBar)
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) { coinBadge }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(action: { showCreateSheet = true }) {
                         Image(systemName: "plus")
@@ -89,6 +91,20 @@ struct TodayView: View {
                     Task { await appState.refreshProfile() }
                 }
             }
+            .alert("确认删除", isPresented: $showDeleteConfirm, presenting: taskToDelete) { task in
+                Button("取消", role: .cancel) {}
+                Button("删除", role: .destructive) {
+                    Task { await deleteTask(task) }
+                }
+            } message: { task in
+                Text("确定要删除「\(task.title)」吗？此操作不可撤销。")
+            }
+            .sheet(item: $taskToEdit) { task in
+                CreateTaskSheet(editing: task) { updatedTask in
+                    updateTask(updatedTask)
+                }
+                .environment(appState)
+            }
         }
         .task(id: selectedDate) { await loadAllTasks() }
     }
@@ -111,38 +127,54 @@ struct TodayView: View {
         .padding(.horizontal, Spacing.screenHorizontal)
     }
 
-    @ViewBuilder
-    private var coinBadge: some View {
-        if let user = appState.currentUser {
-            DLGlassBadge(icon: "bitcoinsign.circle.fill",
-                         text: "\(user.coins)",
-                         tint: .dlCoin)
-        }
-    }
-
     private var taskSections: some View {
         VStack(spacing: Spacing.section) {
             if !dailyTasks.isEmpty {
-                taskSection(title: "日任务", icon: "sun.max", tasks: dailyTasks)
+                taskSection(title: "日任务", icon: "sun.max", tasks: dailyTasks, count: dailyTasks.count)
             }
             if !weeklyTasks.isEmpty {
-                taskSection(title: "周任务", icon: "calendar", tasks: weeklyTasks)
+                taskSection(title: "周任务", icon: "calendar", tasks: weeklyTasks, count: weeklyTasks.count)
             }
             if !monthlyTasks.isEmpty {
-                taskSection(title: "月任务", icon: "chart.bar", tasks: monthlyTasks)
+                taskSection(title: "月任务", icon: "chart.bar", tasks: monthlyTasks, count: monthlyTasks.count)
             }
         }
         .padding(.horizontal, Spacing.screenHorizontal)
     }
 
-    private func taskSection(title: String, icon: String, tasks: [TaskItem]) -> some View {
+    private func taskSection(title: String, icon: String, tasks: [TaskItem], count: Int) -> some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
-            DLSectionHeader(title, icon: icon)
+            HStack {
+                DLSectionHeader(title, icon: icon)
+                Spacer()
+                Text("\(count)/5")
+                    .font(.caption.bold())
+                    .foregroundStyle(count >= 5 ? Color.dlWarning : Color.dlTextSecondary)
+                    .padding(.horizontal, Spacing.sm)
+                    .padding(.vertical, 3)
+                    .glassEffect(.regular.tint((count >= 5 ? Color.dlWarning : Color.dlLavender).opacity(0.2)), in: .capsule)
+            }
             VStack(spacing: Spacing.xs) {
                 ForEach(tasks) { task in
                     DLGlassCard(tint: task.isCompleted ? Color.dlSuccess : Color.dlLavender, cornerRadius: CornerRadius.smallCard, padding: 0) {
                         TaskRowView(task: task, isToday: isToday) {
                             taskToComplete = task
+                        }
+                    }
+                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                        if !task.isCompleted {
+                            Button(role: .destructive) {
+                                taskToDelete = task
+                                showDeleteConfirm = true
+                            } label: {
+                                Label("删除", systemImage: "trash")
+                            }
+                            Button {
+                                taskToEdit = task
+                            } label: {
+                                Label("编辑", systemImage: "pencil")
+                            }
+                            .tint(.dlLavender)
                         }
                     }
                 }
@@ -181,5 +213,16 @@ struct TodayView: View {
             monthlyTasks[index] = task
         }
         Task { await appState.refreshProfile() }
+    }
+
+    private func deleteTask(_ task: TaskItem) async {
+        do {
+            try await taskService.deleteTask(taskId: task.id)
+            dailyTasks.removeAll { $0.id == task.id }
+            weeklyTasks.removeAll { $0.id == task.id }
+            monthlyTasks.removeAll { $0.id == task.id }
+        } catch {
+            errorMessage = "删除失败：\(error.localizedDescription)"
+        }
     }
 }

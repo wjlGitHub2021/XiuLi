@@ -16,5 +16,9 @@ struct DLGlassBadge: View {
         .padding(.horizontal, Spacing.sm)
         .padding(.vertical, Spacing.xs)
         .glassEffect(.regular.tint(tint.opacity(0.35)), in: .capsule)
+        .overlay(
+            Capsule(style: .continuous)
+                .stroke(Color.white.opacity(0.40), lineWidth: 0.5)
+        )
     }
 }

@@ -6,27 +6,54 @@ struct CreateTaskSheet: View {
     @State private var title = ""
     @State private var notes = ""
     @State private var taskType: TaskType
-    @State private var taskDate = Date()
-    @State private var coinsEarned = 10
     @State private var isLoading = false
     @State private var errorMessage: String?
 
     private let taskService = TaskService()
     let onCreated: (TaskItem) -> Void
+    private let editingTask: TaskItem?
 
     init(taskType: TaskType, onCreated: @escaping (TaskItem) -> Void) {
         self._taskType = State(initialValue: taskType)
         self.onCreated = onCreated
+        self.editingTask = nil
     }
 
+    init(editing task: TaskItem, onSaved: @escaping (TaskItem) -> Void) {
+        self._taskType = State(initialValue: task.taskType)
+        self._title = State(initialValue: task.title)
+        self._notes = State(initialValue: task.notes ?? "")
+        self.onCreated = onSaved
+        self.editingTask = task
+    }
+
+    private var isEditing: Bool { editingTask != nil }
+
+    private var coinsEarned: Int {
+        switch taskType {
+        case .daily: return 10
+        case .weekly: return 30
+        case .monthly: return 100
+        }
+    }
+
+    private var taskDate: Date { Date() }
+
     private var computedExpireDate: Date {
+        let cal = Calendar(identifier: .gregorian)
         switch taskType {
         case .daily:
             return taskDate
         case .weekly:
-            return Calendar.current.date(byAdding: .day, value: 7, to: taskDate) ?? taskDate
+            // 本周日 23:59:59（周一为一周起始）
+            var c = Calendar(identifier: .gregorian)
+            c.firstWeekday = 2
+            guard let weekInterval = c.dateInterval(of: .weekOfYear, for: taskDate) else { return taskDate }
+            return cal.date(byAdding: .second, value: -1, to: weekInterval.end) ?? taskDate
         case .monthly:
-            return Calendar.current.date(byAdding: .day, value: 30, to: taskDate) ?? taskDate
+            // 本月最后一天 23:59:59
+            guard let monthInterval = cal.dateInterval(of: .month, for: taskDate) else { return taskDate }
+            return cal.date(byAdding: .second, value: -1, to: monthInterval.end) ?? taskDate
         }
     }
 
@@ -36,7 +63,7 @@ struct CreateTaskSheet: View {
                 DLBackground()
                 ScrollView {
                     VStack(spacing: Spacing.section) {
-                        DLGlassPageHeader(title: "创建任务", subtitle: "安排一个可完成的小目标") {
+                        DLGlassPageHeader(title: isEditing ? "编辑任务" : "创建任务", subtitle: isEditing ? "修改任务内容" : "安排一个可完成的小目标") {
                             DLGlassBadge(icon: "bitcoinsign.circle.fill", text: "+\(coinsEarned)", tint: .dlCoin)
                         }
 
@@ -51,28 +78,29 @@ struct CreateTaskSheet: View {
 
                         DLGlassCard(cornerRadius: CornerRadius.panel) {
                             VStack(spacing: Spacing.md) {
-                                Picker("任务类型", selection: $taskType) {
-                                    ForEach(TaskType.allCases, id: \.self) { type in
-                                        Text(type.displayName).tag(type)
+                                if !isEditing {
+                                    Picker("任务类型", selection: $taskType) {
+                                        ForEach(TaskType.allCases, id: \.self) { type in
+                                            Text(type.displayName).tag(type)
+                                        }
                                     }
+                                    .pickerStyle(.segmented)
                                 }
-                                .pickerStyle(.segmented)
 
-                                DatePicker("任务日期", selection: $taskDate, displayedComponents: .date)
-                                    .foregroundStyle(Color.dlTextPrimary)
-
-                                VStack(alignment: .leading, spacing: Spacing.sm) {
-                                    HStack {
-                                        Label("金币奖励", systemImage: "bitcoinsign.circle.fill")
-                                            .font(.subheadline.weight(.medium))
-                                            .foregroundStyle(Color.dlTextPrimary)
-                                        Spacer()
-                                        Text("\(coinsEarned)")
+                                HStack {
+                                    Label(isEditing ? "任务类型" : "完成奖励", systemImage: isEditing ? "tag" : "bitcoinsign.circle.fill")
+                                        .font(.subheadline.weight(.medium))
+                                        .foregroundStyle(Color.dlTextPrimary)
+                                    Spacer()
+                                    if isEditing {
+                                        Text(taskType.displayName)
+                                            .font(.headline.bold())
+                                            .foregroundStyle(Color.dlLavender)
+                                    } else {
+                                        Text("+\(coinsEarned) 金币")
                                             .font(.headline.bold())
                                             .foregroundStyle(Color.dlCoin)
                                     }
-                                    Stepper("金币奖励：\(coinsEarned)", value: $coinsEarned, in: 1...100)
-                                        .labelsHidden()
                                 }
                             }
                         }
@@ -88,7 +116,7 @@ struct CreateTaskSheet: View {
                             isLoading: isLoading,
                             isDisabled: title.isEmpty
                         ) {
-                            Text("创建")
+                            Text(isEditing ? "保存" : "创建")
                         }
                         .padding(.horizontal, Spacing.screenHorizontal)
                     }
@@ -96,7 +124,7 @@ struct CreateTaskSheet: View {
                 }
                 .scrollContentBackground(.hidden)
             }
-            .navigationTitle("创建任务")
+            .navigationTitle(isEditing ? "编辑任务" : "创建任务")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(.hidden, for: .navigationBar)
             .toolbar {
@@ -123,17 +151,31 @@ struct CreateTaskSheet: View {
         defer { isLoading = false }
 
         do {
-            let pendingCount: Int
+            if let editingTask {
+                try await taskService.updateTaskTitle(
+                    taskId: editingTask.id,
+                    title: title,
+                    notes: notes.isEmpty ? nil : notes
+                )
+                var updated = editingTask
+                updated.title = title
+                updated.notes = notes.isEmpty ? nil : notes
+                onCreated(updated)
+                dismiss()
+                return
+            }
+
+            let totalCount: Int
             switch taskType {
             case .daily:
                 let existing = try await taskService.fetchTasks(userId: userId, taskType: .daily, date: taskDate)
-                pendingCount = existing.filter { $0.status == .pending }.count
+                totalCount = existing.count
             case .weekly, .monthly:
                 let allPending = try await taskService.fetchAllPendingTasks(userId: userId, taskType: taskType)
-                pendingCount = allPending.count
+                totalCount = allPending.count
             }
-            if pendingCount >= 5 {
-                errorMessage = "\(taskType.displayName)最多同时存在5个待完成任务"
+            if totalCount >= 5 {
+                errorMessage = "\(taskType.displayName)最多5个任务"
                 return
             }
 
@@ -153,7 +195,7 @@ struct CreateTaskSheet: View {
             dismiss()
         } catch {
             if errorMessage == nil {
-                errorMessage = "创建失败，请重试"
+                errorMessage = isEditing ? "保存失败，请重试" : "创建失败，请重试"
             }
         }
     }

@@ -21,18 +21,21 @@ struct CalendarView: View {
                 weekdayLabels
                 if isExpanded {
                     monthGrid
+                        .transition(.opacity.combined(with: .scale(scale: 0.95, anchor: .top)))
                 } else {
                     weekRow
+                        .transition(.opacity)
                 }
             }
         }
         .padding(.horizontal, Spacing.screenHorizontal)
+        .animation(.easeInOut(duration: 0.25), value: isExpanded)
     }
 
     private var headerRow: some View {
         HStack {
             if isExpanded {
-                Button(action: { withAnimation(.spring(response: 0.28, dampingFraction: 0.82)) { goToPrevMonth() } }) {
+                Button(action: { goToPrevMonth() }) {
                     Image(systemName: "chevron.left")
                         .font(.subheadline.bold())
                 }
@@ -44,14 +47,14 @@ struct CalendarView: View {
                 .foregroundStyle(Color.dlTextPrimary)
                 .frame(maxWidth: .infinity, alignment: isExpanded ? .center : .leading)
 
-            Button(action: { withAnimation(.spring(response: 0.28, dampingFraction: 0.82)) { isExpanded.toggle() } }) {
+            Button(action: { isExpanded.toggle() }) {
                 Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
                     .font(.subheadline.bold())
             }
             .buttonStyle(.glass)
 
             if isExpanded {
-                Button(action: { withAnimation(.spring(response: 0.28, dampingFraction: 0.82)) { goToNextMonth() } }) {
+                Button(action: { goToNextMonth() }) {
                     Image(systemName: "chevron.right")
                         .font(.subheadline.bold())
                 }
@@ -100,9 +103,7 @@ struct CalendarView: View {
         let isCurrentMonth = calendar.isDate(date, equalTo: currentMonth, toGranularity: .month)
 
         Button(action: {
-            withAnimation(.spring(response: 0.25, dampingFraction: 0.88)) {
-                selectedDate = date
-            }
+            selectedDate = date
         }) {
             Text("\(calendar.component(.day, from: date))")
                 .font(.subheadline.weight(isToday || isSelected ? .bold : .regular))
@@ -114,11 +115,9 @@ struct CalendarView: View {
                 .frame(width: 36, height: 36)
                 .background {
                     if isSelected {
-                        Circle()
-                            .glassEffect(.regular.tint(Color.dlLavender), in: .circle)
+                        Circle().fill(Color.dlLavender)
                     } else if isToday {
-                        Circle()
-                            .glassEffect(.regular.tint(Color.dlCoin.opacity(0.38)), in: .circle)
+                        Circle().fill(Color.dlCoin.opacity(0.22))
                     }
                 }
         }

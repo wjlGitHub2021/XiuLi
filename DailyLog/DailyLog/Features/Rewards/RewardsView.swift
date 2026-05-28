@@ -19,6 +19,36 @@ struct RewardsView: View {
         rewards.filter { $0.type == "direct" && $0.cost != nil }
     }
 
+    private var tierOrder: [String] { ["basic", "rare", "legendary", "sacred", "_other"] }
+
+    private func rewardsForTier(_ tier: String) -> [Reward] {
+        if tier == "_other" {
+            return directRewards.filter { $0.tier == nil || !["basic", "rare", "legendary", "sacred"].contains($0.tier!) }
+                .sorted { ($0.cost ?? 0) < ($1.cost ?? 0) }
+        }
+        return directRewards.filter { $0.tier == tier }.sorted { ($0.cost ?? 0) < ($1.cost ?? 0) }
+    }
+
+    private func tierDisplayName(_ tier: String) -> String {
+        switch tier {
+        case "basic": return "基础"
+        case "rare": return "稀有"
+        case "legendary": return "传说"
+        case "sacred": return "神圣"
+        default: return "其他"
+        }
+    }
+
+    private func tierIcon(_ tier: String) -> String {
+        switch tier {
+        case "basic": return "circle"
+        case "rare": return "diamond"
+        case "legendary": return "star"
+        case "sacred": return "crown"
+        default: return "gift"
+        }
+    }
+
     var body: some View {
         NavigationStack {
             ZStack {
@@ -38,7 +68,7 @@ struct RewardsView: View {
                 }
                 .scrollContentBackground(.hidden)
             }
-            .navigationTitle("奖励")
+            .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(.hidden, for: .navigationBar)
             .refreshable { await loadRewards() }
@@ -121,10 +151,7 @@ struct RewardsView: View {
     }
 
     private var directRewardsSection: some View {
-        VStack(alignment: .leading, spacing: Spacing.sm) {
-            DLSectionHeader("直接兑换", icon: "gift")
-                .padding(.horizontal, Spacing.screenHorizontal + Spacing.xs)
-
+        VStack(alignment: .leading, spacing: Spacing.section) {
             if isLoading {
                 VStack(spacing: Spacing.xs) {
                     ForEach(0..<3, id: \.self) { _ in DLSkeletonRow() }
@@ -134,14 +161,28 @@ struct RewardsView: View {
                 DLEmptyState(icon: "gift", title: "暂无可兑换奖励")
                     .padding(.horizontal, Spacing.screenHorizontal)
             } else {
-                VStack(spacing: Spacing.xs) {
-                    ForEach(directRewards) { reward in
-                        rewardRow(reward)
+                ForEach(tierOrder, id: \.self) { tier in
+                    let tierRewards = rewardsForTier(tier)
+                    if !tierRewards.isEmpty {
+                        tierSection(tier: tier, rewards: tierRewards)
                     }
                 }
-                .glassEffect(.regular, in: .rect(cornerRadius: CornerRadius.card))
-                .padding(.horizontal, Spacing.screenHorizontal)
             }
+        }
+    }
+
+    private func tierSection(tier: String, rewards: [Reward]) -> some View {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
+            DLSectionHeader(tierDisplayName(tier), icon: tierIcon(tier))
+                .padding(.horizontal, Spacing.screenHorizontal + Spacing.xs)
+            VStack(spacing: Spacing.xs) {
+                ForEach(rewards) { reward in
+                    rewardRow(reward)
+                }
+            }
+            .glassEffect(.regular, in: .rect(cornerRadius: CornerRadius.card))
+            .dlGlassChrome(cornerRadius: CornerRadius.card)
+            .padding(.horizontal, Spacing.screenHorizontal)
         }
     }
 
@@ -155,10 +196,12 @@ struct RewardsView: View {
                 Text(reward.name)
                     .font(.body.bold())
                     .foregroundStyle(Color.dlTextPrimary)
+                    .lineLimit(2)
                 if let desc = reward.description {
                     Text(desc)
                         .font(.caption)
                         .foregroundStyle(Color.dlTextSecondary)
+                        .lineLimit(1)
                 }
             }
             Spacer(minLength: Spacing.sm)
@@ -166,17 +209,22 @@ struct RewardsView: View {
                 selectedReward = reward
                 showRedeemConfirm = true
             } label: {
-                HStack(spacing: 4) {
+                HStack(spacing: 3) {
                     Image(systemName: "bitcoinsign.circle.fill")
                         .foregroundStyle(Color.dlCoin)
                     Text("\(reward.cost ?? 0)")
+                        .foregroundStyle(Color.dlTextPrimary)
                     Text("兑换")
+                        .foregroundStyle(Color.dlLavender)
                 }
-                .font(.subheadline.bold())
+                .font(.caption.bold())
+                .lineLimit(1)
+                .fixedSize()
                 .padding(.horizontal, Spacing.sm)
                 .padding(.vertical, 7)
             }
             .buttonStyle(.glass)
+            .tint(.dlLavender)
             .disabled(isRedeeming || (reward.cost ?? 0) > (appState.currentUser?.coins ?? 0))
         }
         .padding(.horizontal, Spacing.md)

@@ -49,14 +49,11 @@ final class TaskService {
         }
     }
 
-    /// 拉取某用户某 type 的全部 pending 任务（不限日期）。
-    /// 用于 CreateTaskSheet 校验 weekly/monthly 的"同时未完成 5 个"上限。
     func fetchAllPendingTasks(userId: UUID, taskType: TaskType) async throws -> [TaskItem] {
         return try await client.from("tasks")
             .select()
             .eq("user_id", value: userId.uuidString)
             .eq("task_type", value: taskType.rawValue)
-            .eq("status", value: "pending")
             .execute()
             .value
     }
@@ -84,6 +81,26 @@ final class TaskService {
         )
         .execute()
         .value
+    }
+
+    func deleteTask(taskId: UUID) async throws {
+        try await client.from("tasks")
+            .delete()
+            .eq("id", value: taskId.uuidString)
+            .execute()
+    }
+
+    func updateTaskTitle(taskId: UUID, title: String, notes: String?) async throws {
+        var updates: [String: String] = ["title": title]
+        if let notes {
+            updates["notes"] = notes
+        } else {
+            updates["notes"] = ""
+        }
+        try await client.from("tasks")
+            .update(updates)
+            .eq("id", value: taskId.uuidString)
+            .execute()
     }
 
     private static let dateFormatter: DateFormatter = {

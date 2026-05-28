@@ -62,6 +62,7 @@ struct DLEmptyState: View {
         .padding(Spacing.lg)
         .frame(maxWidth: .infinity)
         .glassEffect(.regular, in: .rect(cornerRadius: CornerRadius.panel))
+        .dlGlassChrome(cornerRadius: CornerRadius.panel)
     }
 }
 
@@ -99,6 +100,7 @@ struct DLErrorBanner: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .glassEffect(.regular.tint(Color.dlWarning.opacity(0.24)),
                      in: .rect(cornerRadius: CornerRadius.smallCard))
+        .dlGlassChrome(cornerRadius: CornerRadius.smallCard)
     }
 }
 
@@ -126,6 +128,7 @@ struct DLLoadingState: View {
         .frame(maxWidth: .infinity)
         .glassEffect(.regular.tint(Color.dlLavender.opacity(0.14)),
                      in: .rect(cornerRadius: CornerRadius.panel))
+        .dlGlassChrome(cornerRadius: CornerRadius.panel)
     }
 }
 
@@ -215,5 +218,14 @@ extension View {
             .scrollContentBackground(.hidden)
             .toolbarBackground(.hidden, for: .navigationBar)
             .tint(Color.dlLavender)
+    }
+
+    func dlGlassChrome(cornerRadius: CGFloat = CornerRadius.card, elevated: Bool = true) -> some View {
+        self
+            .overlay(
+                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                    .stroke(Color.white.opacity(0.45), lineWidth: 0.75)
+            )
+            .shadow(color: .black.opacity(elevated ? 0.10 : 0), radius: 12, y: 6)
     }
 }

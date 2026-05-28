@@ -5,18 +5,37 @@ struct Reward: Codable, Identifiable, Sendable {
     let name: String
     let description: String?
     let icon: String
-    // cost 保留 Optional 以兼容 DB schema（部分 spin 奖励无固定金币成本）
-    // 展示层使用前需过滤 cost == nil 的 direct 奖励
     let cost: Int?
-    let type: String  // "direct" or "spin"
+    let type: String
     let probability: Double?
     let sortOrder: Int?
     let isActive: Bool?
+    let tier: String?
 
     enum CodingKeys: String, CodingKey {
-        case id, name, description, icon, cost, type, probability
+        case id, name, description, icon, cost, type, probability, tier
         case sortOrder = "sort_order"
         case isActive = "is_active"
+    }
+
+    var tierDisplay: String {
+        switch tier {
+        case "basic": return "基础"
+        case "rare": return "稀有"
+        case "legendary": return "传说"
+        case "sacred": return "神圣"
+        default: return ""
+        }
+    }
+
+    var tierColor: String {
+        switch tier {
+        case "basic": return "basic"
+        case "rare": return "rare"
+        case "legendary": return "legendary"
+        case "sacred": return "sacred"
+        default: return "basic"
+        }
     }
 }
 

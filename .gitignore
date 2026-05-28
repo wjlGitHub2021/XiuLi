@@ -10,5 +10,16 @@ xcuserdata/
 .build/
 .swiftpm/
 
-# Supabase local CLI state
-supabase/.temp/
+# Supabase local CLI & functions
+supabase/
+
+# Internal docs, design assets & markdown (except README)
+docs/
+UI/
+AGENTS.md
+CLAUDE.md
+*.md
+!README.md
+
+# Sensitive config (use .example as template)
+DailyLog/DailyLog/Core/Supabase/SupabaseClient.swift

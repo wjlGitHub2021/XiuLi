@@ -1,0 +1,15 @@
+import Supabase
+import Foundation
+
+// 复制此文件为 SupabaseClient.swift，填入你自己的 Supabase 项目信息
+enum AppSupabase {
+    static let client: SupabaseClient = {
+        guard let url = URL(string: "https://YOUR_PROJECT_ID.supabase.co") else {
+            fatalError("Supabase URL 无效，请检查配置")
+        }
+        return SupabaseClient(
+            supabaseURL: url,
+            supabaseKey: "YOUR_SUPABASE_ANON_KEY"
+        )
+    }()
+}
