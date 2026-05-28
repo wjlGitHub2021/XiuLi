@@ -23,29 +23,32 @@ struct ProfileView: View {
     private let profileService = ProfileService()
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                GlassEffectContainer(spacing: 16.0) {
-                    VStack(spacing: Spacing.md) {
-                        profileHeader
-                        statsSection
-                        transactionsSection
-                        settingsSection
+        ZStack {
+            DLBackground()
+            NavigationStack {
+                ScrollView {
+                    GlassEffectContainer(spacing: 16.0) {
+                        VStack(spacing: Spacing.md) {
+                            profileHeader
+                            statsSection
+                            transactionsSection
+                            settingsSection
+                        }
+                        .padding(.horizontal, Spacing.screenHorizontal)
+                        .padding(.vertical, Spacing.sm)
                     }
-                    .padding(.horizontal, Spacing.md)
-                    .padding(.vertical, Spacing.sm)
                 }
-            }
-            .refreshable { await loadData() }
-            .navigationTitle("我的")
-            .confirmationDialog("确认退出登录？", isPresented: $showLogoutConfirm) {
-                Button("退出登录", role: .destructive) {
-                    Task { await appState.signOut() }
+                .scrollContentBackground(.hidden)
+                .refreshable { await loadData() }
+                .navigationTitle("我的")
+                .confirmationDialog("确认退出登录？", isPresented: $showLogoutConfirm) {
+                    Button("退出登录", role: .destructive) {
+                        Task { await appState.signOut() }
+                    }
                 }
             }
         }
         .task { await loadData() }
-        // Bug #25: 错误弹窗
         .alert("加载失败", isPresented: $showError) {
             Button("好") { errorMessage = nil }
         } message: {
@@ -67,14 +70,14 @@ struct ProfileView: View {
                 } placeholder: {
                     Image(systemName: "person.circle.fill")
                         .font(.system(size: 56))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Color.dlTextSecondary)
                 }
                 .frame(width: 56, height: 56)
                 .clipShape(Circle())
             } else {
                 Image(systemName: "person.circle.fill")
                     .font(.system(size: 56))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.dlTextSecondary)
             }
         }
         .overlay {
@@ -97,88 +100,134 @@ struct ProfileView: View {
             VStack(alignment: .leading, spacing: Spacing.xs) {
                 Text(appState.currentUser?.nickname ?? "加载中")
                     .font(.title2.bold())
+                    .foregroundStyle(Color.dlTextPrimary)
                 HStack(spacing: Spacing.xs) {
                     Image(systemName: "bitcoinsign.circle.fill")
                         .foregroundStyle(Color.dlCoin)
                     Text("\(appState.currentUser?.coins ?? 0) 金币")
                         .font(.subheadline)
+                        .foregroundStyle(Color.dlTextSecondary)
                 }
             }
             Spacer()
         }
         .padding(Spacing.md)
-        .glassEffect(.regular.tint(.blue), in: .rect(cornerRadius: 20))
+        .glassEffect(.regular.tint(Color.dlLavender.opacity(0.32)), in: .rect(cornerRadius: CornerRadius.card))
     }
 
     private var statsSection: some View {
-        VStack(spacing: Spacing.sm) {
-            HStack {
-                Label("完成任务", systemImage: "checkmark.circle")
-                Spacer()
-                Text("\(appState.currentUser?.totalCompleted ?? 0) 次")
-                    .foregroundStyle(.secondary)
+        HStack(spacing: Spacing.sm) {
+            statTile(
+                icon: "checkmark.circle.fill",
+                iconTint: Color.dlSuccess,
+                value: "\(appState.currentUser?.totalCompleted ?? 0)",
+                unit: "次",
+                label: "完成任务"
+            )
+            statTile(
+                icon: "flame.fill",
+                iconTint: Color.dlWarning,
+                value: "\(streak)",
+                unit: "天",
+                label: "连续打卡"
+            )
+        }
+    }
+
+    private func statTile(icon: String, iconTint: Color, value: String, unit: String, label: String) -> some View {
+        VStack(alignment: .leading, spacing: Spacing.xs) {
+            HStack(spacing: Spacing.xs) {
+                Image(systemName: icon)
+                    .font(.subheadline)
+                    .foregroundStyle(iconTint)
+                Text(label)
+                    .font(.caption)
+                    .foregroundStyle(Color.dlTextSecondary)
             }
-            Divider()
-            HStack {
-                Label("连续打卡", systemImage: "flame")
-                Spacer()
-                Text("\(streak) 天")
-                    .foregroundStyle(.secondary)
+            HStack(alignment: .lastTextBaseline, spacing: 2) {
+                Text(value)
+                    .font(.title2.bold())
+                    .foregroundStyle(Color.dlTextPrimary)
+                Text(unit)
+                    .font(.caption)
+                    .foregroundStyle(Color.dlTextSecondary)
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .padding(Spacing.md)
-        .glassEffect(.regular, in: .rect(cornerRadius: 16))
+        .glassEffect(.regular, in: .rect(cornerRadius: CornerRadius.smallCard))
     }
 
     private var transactionsSection: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
-            Text("最近金币记录")
-                .font(.headline)
+            DLSectionHeader("最近金币记录", icon: "clock")
                 .padding(.horizontal, Spacing.sm)
 
             if transactions.isEmpty {
                 Text("还没有金币记录")
-                    .foregroundStyle(.secondary)
+                    .font(.subheadline)
+                    .foregroundStyle(Color.dlTextSecondary)
                     .padding(Spacing.md)
                     .frame(maxWidth: .infinity)
-                    .glassEffect(.regular, in: .rect(cornerRadius: 16))
+                    .glassEffect(.regular, in: .rect(cornerRadius: CornerRadius.smallCard))
             } else {
                 VStack(spacing: Spacing.xs) {
                     ForEach(transactions) { tx in
-                        HStack {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(tx.reasonDisplay)
-                                    .font(.body)
-                                Text(tx.createdAt, style: .relative)
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                            Spacer()
-                            Text(tx.amount > 0 ? "+\(tx.amount)" : "\(tx.amount)")
-                                .font(.body.bold())
-                                .foregroundStyle(tx.amount > 0 ? .green : .red)
-                        }
-                        .padding(.horizontal, Spacing.md)
-                        .padding(.vertical, Spacing.sm)
+                        transactionRow(tx)
                     }
                 }
-                .glassEffect(.regular, in: .rect(cornerRadius: 16))
+                .glassEffect(.regular, in: .rect(cornerRadius: CornerRadius.smallCard))
             }
         }
+    }
+
+    private func transactionRow(_ tx: CoinTransaction) -> some View {
+        let isPositive = tx.amount > 0
+        let symbol: String = isPositive ? "checkmark.circle.fill" : "gift.fill"
+        let tint: Color = isPositive ? Color.dlSuccess : Color.dlError
+        return HStack(spacing: Spacing.md) {
+            ZStack {
+                Circle()
+                    .fill(tint.opacity(0.18))
+                    .frame(width: 36, height: 36)
+                Image(systemName: symbol)
+                    .font(.subheadline.bold())
+                    .foregroundStyle(tint)
+            }
+            VStack(alignment: .leading, spacing: 2) {
+                Text(tx.reasonDisplay)
+                    .font(.body)
+                    .foregroundStyle(Color.dlTextPrimary)
+                Text(tx.createdAt, style: .relative)
+                    .font(.caption)
+                    .foregroundStyle(Color.dlTextSecondary)
+            }
+            Spacer()
+            Text(isPositive ? "+\(tx.amount)" : "\(tx.amount)")
+                .font(.body.bold())
+                .foregroundStyle(isPositive ? Color.dlSuccess : Color.dlError)
+        }
+        .padding(.horizontal, Spacing.md)
+        .padding(.vertical, Spacing.sm)
     }
 
     private var settingsSection: some View {
         VStack(spacing: Spacing.sm) {
             HStack {
-                Label("消息推送", systemImage: "bell")
+                Label {
+                    Text("消息推送").foregroundStyle(Color.dlTextPrimary)
+                } icon: {
+                    Image(systemName: "bell.fill")
+                        .foregroundStyle(Color.dlLavender)
+                }
                 Spacer()
                 Toggle("", isOn: $pushEnabled)
                     .labelsHidden()
+                    .tint(Color.dlLavender)
             }
             .padding(Spacing.md)
-            .glassEffect(.regular, in: .rect(cornerRadius: 16))
+            .glassEffect(.regular, in: .rect(cornerRadius: CornerRadius.smallCard))
             .onChange(of: pushEnabled) { _, newValue in
-                // Bug #15: loadData 初始化阶段不触发 DB 写
                 guard !isInitializing else { return }
                 Task { await togglePush(newValue) }
             }
@@ -187,12 +236,16 @@ struct ProfileView: View {
                 showLogoutConfirm = true
             } label: {
                 HStack {
-                    Label("退出登录", systemImage: "rectangle.portrait.and.arrow.right")
+                    Spacer()
+                    Text("退出登录")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(Color.dlError)
                     Spacer()
                 }
-                .padding(Spacing.md)
+                .padding(.vertical, Spacing.md)
             }
-            .glassEffect(.regular.tint(.red), in: .rect(cornerRadius: 16))
+            .buttonStyle(.plain)
+            .glassEffect(.regular.tint(Color.dlError.opacity(0.22)), in: .rect(cornerRadius: CornerRadius.smallCard))
         }
     }
 
