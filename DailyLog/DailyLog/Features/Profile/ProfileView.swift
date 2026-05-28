@@ -10,6 +10,13 @@ struct ProfileView: View {
     @State private var isUploadingAvatar = false
     @State private var streak: Int = 0
     @State private var pushEnabled: Bool = false
+    // Bug #15: 防止 loadData 初始赋值 pushEnabled 时误触发 DB 写
+    @State private var isInitializing = true
+    // Bug #25: 错误反馈
+    @State private var errorMessage: String?
+    @State private var showError = false
+    // 附加任务 nit: 复用 NotificationService 实例
+    @State private var notificationService = NotificationService()
 
     private let profileService = ProfileService()
 
@@ -36,6 +43,12 @@ struct ProfileView: View {
             }
         }
         .task { await loadData() }
+        // Bug #25: 错误弹窗
+        .alert("加载失败", isPresented: $showError) {
+            Button("好") { errorMessage = nil }
+        } message: {
+            Text(errorMessage ?? "")
+        }
     }
 
     private var avatarView: some View {
@@ -157,6 +170,8 @@ struct ProfileView: View {
             .padding(Spacing.md)
             .glassEffect(.regular, in: .rect(cornerRadius: 16))
             .onChange(of: pushEnabled) { _, newValue in
+                // Bug #15: loadData 初始化阶段不触发 DB 写
+                guard !isInitializing else { return }
                 Task { await togglePush(newValue) }
             }
 
@@ -175,18 +190,31 @@ struct ProfileView: View {
 
     private func loadData() async {
         guard let userId = appState.currentUser?.id else { return }
+        // Bug #14: 进入前先清空旧数据，防止退出登录后残留
+        transactions = []
+        streak = 0
         isLoading = true
+        isInitializing = true
         defer { isLoading = false }
+        // Bug #13: 强制拉最新 users 数据，保证金币余额一致性
         await appState.refreshProfile()
-        transactions = (try? await profileService.fetchRecentTransactions(userId: userId)) ?? []
-        streak = (try? await profileService.fetchStreak(userId: userId)) ?? 0
+        do {
+            // Bug #25: try? 改为 do/catch，错误时展示 alert
+            transactions = try await profileService.fetchRecentTransactions(userId: userId)
+            streak = try await profileService.fetchStreak(userId: userId)
+        } catch {
+            errorMessage = error.localizedDescription
+            showError = true
+        }
         pushEnabled = appState.currentUser?.pushEnabled ?? false
+        // Bug #15: 赋值完成后才允许 onChange 触发 DB 写
+        isInitializing = false
     }
 
     private func togglePush(_ enabled: Bool) async {
-        let service = NotificationService()
+        // 附加任务 nit: 使用复用的 notificationService 实例
         if enabled {
-            let granted = await service.requestPermission()
+            let granted = await notificationService.requestPermission()
             if !granted {
                 pushEnabled = false
                 return
@@ -201,13 +229,20 @@ struct ProfileView: View {
     }
 
     private func handlePhotoSelection(_ item: PhotosPickerItem?) async {
+        // Bug #4: 入口加并发锁，防止连点重复上传
+        guard !isUploadingAvatar else { return }
         guard let item, let userId = appState.currentUser?.id else { return }
+        // Bug #3: 原始 Data 直接传给 ProfileService，由 Service 负责降采样+压缩
         guard let data = try? await item.loadTransferable(type: Data.self) else { return }
-        guard let uiImage = UIImage(data: data),
-              let jpegData = uiImage.jpegData(compressionQuality: 0.8) else { return }
         isUploadingAvatar = true
         defer { isUploadingAvatar = false }
-        _ = try? await profileService.uploadAvatar(userId: userId, imageData: jpegData)
+        do {
+            // Bug #25: 上传失败时展示错误
+            _ = try await profileService.uploadAvatar(userId: userId, imageData: data)
+        } catch {
+            errorMessage = error.localizedDescription
+            showError = true
+        }
         await appState.refreshProfile()
     }
 }
