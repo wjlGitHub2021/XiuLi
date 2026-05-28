@@ -37,23 +37,27 @@ struct SpinWheelView: View {
     }
 
     var body: some View {
-        ScrollView {
-            GlassEffectContainer(spacing: 16.0) {
-                VStack(spacing: Spacing.md) {
-                    coinCostHeader
-                    // Bug #26: isLoading 时显示 ProgressView 替代转盘
-                    if isLoading {
-                        ProgressView("加载中...")
-                            .frame(maxWidth: .infinity)
-                            .padding(Spacing.xl)
-                            .glassEffect(.regular, in: .rect(cornerRadius: 20))
-                    } else {
-                        wheelGrid
+        ZStack {
+            DLBackground()
+            ScrollView {
+                GlassEffectContainer(spacing: 16.0) {
+                    VStack(spacing: Spacing.md) {
+                        coinCostHeader
+                        // Bug #26: isLoading 时显示 ProgressView 替代转盘
+                        if isLoading {
+                            ProgressView("加载中...")
+                                .frame(maxWidth: .infinity)
+                                .padding(Spacing.xl)
+                                .glassEffect(.regular, in: .rect(cornerRadius: CornerRadius.card))
+                        } else {
+                            wheelGrid
+                        }
                     }
+                    .padding(.horizontal, Spacing.screenHorizontal)
+                    .padding(.vertical, Spacing.sm)
                 }
-                .padding(.horizontal, Spacing.md)
-                .padding(.vertical, Spacing.sm)
             }
+            .scrollContentBackground(.hidden)
         }
         .navigationTitle("转盘抽奖")
         .navigationBarTitleDisplayMode(.inline)
@@ -76,13 +80,14 @@ struct SpinWheelView: View {
                 .foregroundStyle(Color.dlCoin)
             Text("余额：\(appState.currentUser?.coins ?? 0) 金币")
                 .font(.subheadline)
+                .foregroundStyle(Color.dlTextPrimary)
             Spacer()
             Text("每次消耗 \(spinCost) 金币")
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.dlTextSecondary)
         }
         .padding(Spacing.md)
-        .glassEffect(.regular.tint(.yellow), in: .rect(cornerRadius: 16))
+        .glassEffect(.regular.tint(Color.dlCoin.opacity(0.32)), in: .rect(cornerRadius: CornerRadius.smallCard))
     }
 
     private var wheelGrid: some View {
@@ -99,7 +104,7 @@ struct SpinWheelView: View {
             }
         }
         .padding(Spacing.sm)
-        .glassEffect(.regular, in: .rect(cornerRadius: 20))
+        .glassEffect(.regular, in: .rect(cornerRadius: CornerRadius.card))
     }
 
     // Bug #6: .disabled(isSpinning) 防双击（UI 层禁用）
@@ -112,14 +117,17 @@ struct SpinWheelView: View {
                     .font(.title2)
                     .rotationEffect(isSpinning ? .degrees(360) : .zero)
                     .animation(isSpinning ? .linear(duration: 0.5).repeatForever(autoreverses: false) : .default, value: isSpinning)
+                    .foregroundStyle(.white)
                 Text(isSpinning ? "抽奖中" : "开始")
                     .font(.headline.bold())
+                    .foregroundStyle(.white)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .aspectRatio(1, contentMode: .fit)
             .padding(Spacing.sm)
+            .glassEffect(.regular.tint(Color.dlLavender.opacity(0.6)), in: .rect(cornerRadius: CornerRadius.control))
         }
-        .buttonStyle(.glass)
+        .buttonStyle(.plain)
         .disabled(isSpinning || (appState.currentUser?.coins ?? 0) < spinCost)
     }
 
@@ -129,6 +137,7 @@ struct SpinWheelView: View {
                 .font(.title2)
             Text(reward.name)
                 .font(.caption2)
+                .foregroundStyle(Color.dlTextPrimary)
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
         }
@@ -136,8 +145,8 @@ struct SpinWheelView: View {
         .aspectRatio(1, contentMode: .fit)
         .padding(Spacing.xs)
         .glassEffect(
-            isHighlighted ? .regular.tint(.yellow) : .regular,
-            in: .rect(cornerRadius: 12)
+            isHighlighted ? .regular.tint(Color.dlCoin.opacity(0.5)) : .regular,
+            in: .rect(cornerRadius: CornerRadius.control)
         )
         .scaleEffect(isHighlighted ? 1.05 : 1.0)
         .animation(.easeInOut(duration: 0.1), value: isHighlighted)
