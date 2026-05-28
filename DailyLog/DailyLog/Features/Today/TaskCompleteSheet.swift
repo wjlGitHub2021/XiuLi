@@ -12,6 +12,7 @@ struct TaskCompleteSheet: View {
     @State private var showSourcePicker = false
     @State private var isUploading = false
     @State private var errorMessage: String?
+    @State private var showAlreadyCompletedAlert = false
 
     private let taskService = TaskService()
 
@@ -84,6 +85,11 @@ struct TaskCompleteSheet: View {
             .fullScreenCover(isPresented: $showCamera) {
                 CameraPicker(image: $selectedImage)
             }
+            .alert("提示", isPresented: $showAlreadyCompletedAlert) {
+                Button("确定", role: .cancel) {}
+            } message: {
+                Text("该任务今日已完成")
+            }
         }
     }
 
@@ -102,14 +108,19 @@ struct TaskCompleteSheet: View {
 
         do {
             // TODO: Create 'task-proofs' bucket in Supabase Storage dashboard before first use
-            let path = "\(task.id.uuidString).jpg"
+            let timestamp = Int(Date().timeIntervalSince1970)
+            let path = "\(task.id.uuidString)-\(timestamp).jpg"
             try await AppSupabase.client.storage
                 .from("task-proofs")
-                .upload(path, data: data, options: .init(contentType: "image/jpeg", upsert: true))
+                .upload(path, data: data, options: .init(contentType: "image/jpeg", upsert: false))
 
             let response = try await taskService.completeTask(taskId: task.id)
-            onCompleted(response.task)
-            dismiss()
+            if response.alreadyCompleted {
+                showAlreadyCompletedAlert = true
+            } else {
+                onCompleted(response.task)
+                dismiss()
+            }
         } catch {
             errorMessage = "上传失败，请重试"
         }
@@ -119,16 +130,14 @@ struct TaskCompleteSheet: View {
 
     private func compressImage(_ image: UIImage, maxWidth: CGFloat, quality: CGFloat) -> Data? {
         let ratio = maxWidth / image.size.width
-        let newSize: CGSize
+        let targetSize: CGSize
         if ratio < 1 {
-            newSize = CGSize(width: maxWidth, height: image.size.height * ratio)
+            targetSize = CGSize(width: maxWidth, height: image.size.height * ratio)
         } else {
-            newSize = image.size
+            targetSize = image.size
         }
-        UIGraphicsBeginImageContextWithOptions(newSize, true, 1.0)
-        image.draw(in: CGRect(origin: .zero, size: newSize))
-        let resized = UIGraphicsGetImageFromCurrentImageContext()
-        UIGraphicsEndImageContext()
-        return resized?.jpegData(compressionQuality: quality)
+        let renderer = UIGraphicsImageRenderer(size: targetSize)
+        let resized = renderer.image { _ in image.draw(in: CGRect(origin: .zero, size: targetSize)) }
+        return resized.jpegData(compressionQuality: quality)
     }
 }

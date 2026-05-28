@@ -138,7 +138,7 @@ struct CalendarView: View {
     // MARK: - Date Calculations
 
     private func currentWeekDays() -> [Date] {
-        let today = calendar.startOfDay(for: selectedDate)
+        let today = calendar.startOfDay(for: Date())
         let weekday = calendar.component(.weekday, from: today)
         // firstWeekday = 2 (Monday), so offset: Mon=0, Tue=1, ..., Sun=6
         let offset = (weekday - calendar.firstWeekday + 7) % 7

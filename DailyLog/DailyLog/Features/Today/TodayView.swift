@@ -36,7 +36,7 @@ struct TodayView: View {
                         ProgressView()
                             .padding(.top, 100)
                     } else if allTasksEmpty {
-                        DLEmptyState(message: "今日无任务")
+                        DLEmptyState(message: Calendar.current.isDateInToday(selectedDate) ? "今日无任务" : "该日无任务")
                     } else {
                         taskSections
                     }
@@ -134,14 +134,20 @@ struct TodayView: View {
 
     private func loadAllTasks() async {
         guard let userId = appState.currentUser?.id else { return }
+        let captured = selectedDate
         isLoading = true
         errorMessage = nil
         defer { isLoading = false }
 
-        let result = await taskService.fetchAllTasks(userId: userId, date: selectedDate)
-        dailyTasks = result.daily
-        weeklyTasks = result.weekly
-        monthlyTasks = result.monthly
+        do {
+            let result = try await taskService.fetchAllTasks(userId: userId, date: captured)
+            guard captured == selectedDate else { return }
+            dailyTasks = result.daily
+            weeklyTasks = result.weekly
+            monthlyTasks = result.monthly
+        } catch {
+            errorMessage = "加载失败：\(error.localizedDescription)"
+        }
     }
 
     private func updateTask(_ task: TaskItem) {
