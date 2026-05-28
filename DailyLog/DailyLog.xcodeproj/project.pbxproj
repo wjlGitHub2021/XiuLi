@@ -13,6 +13,7 @@
 		37BAA2A8C61EE10446FC7521 /* Components.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0A084A592040F8115A35C39 /* Components.swift */; };
 		3AFD13BFF0AC8AFAE54FAE75 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17C3EAAAC5B09183B000FE9 /* MainTabView.swift */; };
 		3BB8DA841E6C33FE29393E42 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 57831C2B2137246D7B272C43 /* Supabase */; };
+		3FD1BBB564E4EFD2E8013739 /* ImagePickers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62433AC4B89740AF8472C64F /* ImagePickers.swift */; };
 		5175F1FF88D78AEB176FAF59 /* CreateTaskSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77A233878E65A42A3320ACCE /* CreateTaskSheet.swift */; };
 		51B844AF5668604BC1D4EED6 /* TodayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD16E1E75F4E542826FCD3EE /* TodayView.swift */; };
 		54A4C3B0AB5D55AE52C57665 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 698C1F573444259A2BC388D0 /* NotificationService.swift */; };
@@ -26,6 +27,7 @@
 		A0C167D9C24F2419039AEE17 /* FeedService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 532E358BE82A283EAE3D3456 /* FeedService.swift */; };
 		A59578B0640F2241DB56E331 /* CompleteTaskResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F36B6E491FF6EE4F023E428 /* CompleteTaskResponse.swift */; };
 		A5A3DEA649381DD3B4DC5DF3 /* FeedItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31CD2D78295CBC8228931DE /* FeedItemView.swift */; };
+		B485ED2CA6C0C470EC94092B /* TaskCompleteSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 967D03169BA622F34DFDC510 /* TaskCompleteSheet.swift */; };
 		B95F2CD7C97A6920AEE9088C /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F410F5086881F076C520825 /* ContentView.swift */; };
 		BE1AB270308CDF84963901A2 /* TaskItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43E6633A5DDD59A1DE5DFC6D /* TaskItem.swift */; };
 		C52FA76294D9561899248881 /* FeedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C9FC12BA5D19D4B8F8EC5FC /* FeedView.swift */; };
@@ -50,12 +52,14 @@
 		41A7278F0D66EA877AE2D8B2 /* Spacing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spacing.swift; sourceTree = "<group>"; };
 		43E6633A5DDD59A1DE5DFC6D /* TaskItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskItem.swift; sourceTree = "<group>"; };
 		532E358BE82A283EAE3D3456 /* FeedService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedService.swift; sourceTree = "<group>"; };
+		62433AC4B89740AF8472C64F /* ImagePickers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePickers.swift; sourceTree = "<group>"; };
 		648C8536C0347D877B73D013 /* TaskService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskService.swift; sourceTree = "<group>"; };
 		698C1F573444259A2BC388D0 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
 		77A233878E65A42A3320ACCE /* CreateTaskSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateTaskSheet.swift; sourceTree = "<group>"; };
 		7A744B16B6F8D064303BA205 /* CoinTransaction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoinTransaction.swift; sourceTree = "<group>"; };
 		8C76F135591F5E62ACD7BE96 /* DailyLogApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyLogApp.swift; sourceTree = "<group>"; };
 		8C9FC12BA5D19D4B8F8EC5FC /* FeedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedView.swift; sourceTree = "<group>"; };
+		967D03169BA622F34DFDC510 /* TaskCompleteSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskCompleteSheet.swift; sourceTree = "<group>"; };
 		9C5C9181F82EAAE17EE56682 /* Reward.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Reward.swift; sourceTree = "<group>"; };
 		9F410F5086881F076C520825 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		A1CE81FC97C70C3263A82392 /* FeedMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedMessage.swift; sourceTree = "<group>"; };
@@ -177,6 +181,8 @@
 			children = (
 				FDD937D3FC6277E3EF206047 /* CalendarView.swift */,
 				77A233878E65A42A3320ACCE /* CreateTaskSheet.swift */,
+				62433AC4B89740AF8472C64F /* ImagePickers.swift */,
+				967D03169BA622F34DFDC510 /* TaskCompleteSheet.swift */,
 				C29EDC51111B6E3B2667A796 /* TaskRowView.swift */,
 				AD16E1E75F4E542826FCD3EE /* TodayView.swift */,
 			);
@@ -332,6 +338,7 @@
 				9C5FDA727AE5E6D14EB78297 /* FeedMessage.swift in Sources */,
 				A0C167D9C24F2419039AEE17 /* FeedService.swift in Sources */,
 				C52FA76294D9561899248881 /* FeedView.swift in Sources */,
+				3FD1BBB564E4EFD2E8013739 /* ImagePickers.swift in Sources */,
 				354A28D7A2F66C0DC80E6FDF /* LoginView.swift in Sources */,
 				3AFD13BFF0AC8AFAE54FAE75 /* MainTabView.swift in Sources */,
 				54A4C3B0AB5D55AE52C57665 /* NotificationService.swift in Sources */,
@@ -343,6 +350,7 @@
 				C7910A3AC7FB5768C42A8950 /* Spacing.swift in Sources */,
 				FB166EA87BC819A6E1FC0274 /* SpinWheelView.swift in Sources */,
 				3627C0491BC4CE1B4C543A46 /* SupabaseClient.swift in Sources */,
+				B485ED2CA6C0C470EC94092B /* TaskCompleteSheet.swift in Sources */,
 				BE1AB270308CDF84963901A2 /* TaskItem.swift in Sources */,
 				93A4D91C3947DCCE0EEC61A2 /* TaskRowView.swift in Sources */,
 				D87FC09BEBAE2B7930BAAC2C /* TaskService.swift in Sources */,

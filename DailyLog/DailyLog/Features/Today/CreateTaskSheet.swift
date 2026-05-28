@@ -7,8 +7,6 @@ struct CreateTaskSheet: View {
     @State private var notes = ""
     @State private var taskType: TaskType
     @State private var taskDate = Date()
-    @State private var expireDate: Date?
-    @State private var hasExpireDate = false
     @State private var coinsEarned = 10
     @State private var isLoading = false
     @State private var errorMessage: String?
@@ -19,6 +17,18 @@ struct CreateTaskSheet: View {
     init(taskType: TaskType, onCreated: @escaping (TaskItem) -> Void) {
         self._taskType = State(initialValue: taskType)
         self.onCreated = onCreated
+    }
+
+    /// Auto-calculated expire date based on task type
+    private var computedExpireDate: Date {
+        switch taskType {
+        case .daily:
+            return taskDate
+        case .weekly:
+            return Calendar.current.date(byAdding: .day, value: 7, to: taskDate) ?? taskDate
+        case .monthly:
+            return Calendar.current.date(byAdding: .day, value: 30, to: taskDate) ?? taskDate
+        }
     }
 
     var body: some View {
@@ -37,13 +47,6 @@ struct CreateTaskSheet: View {
                         }
                     }
                     DatePicker("任务日期", selection: $taskDate, displayedComponents: .date)
-                    Toggle("设置到期日", isOn: $hasExpireDate)
-                    if hasExpireDate {
-                        DatePicker("到期日期", selection: Binding(
-                            get: { expireDate ?? taskDate },
-                            set: { expireDate = $0 }
-                        ), displayedComponents: .date)
-                    }
                     Stepper("金币奖励：\(coinsEarned)", value: $coinsEarned, in: 1...100)
                 }
 
@@ -97,7 +100,7 @@ struct CreateTaskSheet: View {
                 notes: notes.isEmpty ? nil : notes,
                 taskType: taskType.rawValue,
                 taskDate: Self.dateFormatter.string(from: taskDate),
-                expireDate: hasExpireDate ? Self.dateFormatter.string(from: expireDate ?? taskDate) : nil,
+                expireDate: Self.dateFormatter.string(from: computedExpireDate),
                 coinsEarned: coinsEarned,
                 orderInDay: 0
             )

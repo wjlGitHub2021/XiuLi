@@ -9,8 +9,13 @@ struct TodayView: View {
     @State private var isLoading = false
     @State private var errorMessage: String?
     @State private var showCreateSheet = false
+    @State private var taskToComplete: TaskItem?
 
     private let taskService = TaskService()
+
+    private var isToday: Bool {
+        Calendar.current.isDateInToday(selectedDate)
+    }
 
     private var allTasksEmpty: Bool {
         dailyTasks.isEmpty && weeklyTasks.isEmpty && monthlyTasks.isEmpty
@@ -61,6 +66,12 @@ struct TodayView: View {
                 }
                 .environment(appState)
             }
+            .sheet(item: $taskToComplete) { task in
+                TaskCompleteSheet(task: task) { completedTask in
+                    updateTask(completedTask)
+                    Task { await appState.refreshProfile() }
+                }
+            }
         }
         .task(id: selectedDate) { await loadAllTasks() }
     }
@@ -109,8 +120,8 @@ struct TodayView: View {
                 .foregroundStyle(.secondary)
                 .padding(.horizontal, Spacing.xs)
             ForEach(tasks) { task in
-                TaskRowView(task: task) {
-                    Task { await completeTask(task, type: type) }
+                TaskRowView(task: task, isToday: isToday) {
+                    taskToComplete = task
                 }
                 .padding(.horizontal, Spacing.md)
                 .padding(.vertical, Spacing.sm)
@@ -137,28 +148,13 @@ struct TodayView: View {
         }
     }
 
-    private func completeTask(_ task: TaskItem, type: TaskType) async {
-        errorMessage = nil
-        do {
-            let response = try await taskService.completeTask(taskId: task.id)
-            switch type {
-            case .daily:
-                if let index = dailyTasks.firstIndex(where: { $0.id == task.id }) {
-                    dailyTasks[index] = response.task
-                }
-            case .weekly:
-                if let index = weeklyTasks.firstIndex(where: { $0.id == task.id }) {
-                    weeklyTasks[index] = response.task
-                }
-            case .monthly:
-                if let index = monthlyTasks.firstIndex(where: { $0.id == task.id }) {
-                    monthlyTasks[index] = response.task
-                }
-            }
-            await appState.refreshProfile()
-        } catch {
-            errorMessage = "完成任务失败，请重试"
-            await loadAllTasks()
+    private func updateTask(_ task: TaskItem) {
+        if let index = dailyTasks.firstIndex(where: { $0.id == task.id }) {
+            dailyTasks[index] = task
+        } else if let index = weeklyTasks.firstIndex(where: { $0.id == task.id }) {
+            weeklyTasks[index] = task
+        } else if let index = monthlyTasks.firstIndex(where: { $0.id == task.id }) {
+            monthlyTasks[index] = task
         }
     }
 }
