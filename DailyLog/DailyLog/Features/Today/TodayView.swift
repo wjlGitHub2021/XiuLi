@@ -38,7 +38,14 @@ struct TodayView: View {
                             ProgressView()
                                 .padding(.top, 100)
                         } else if allTasksEmpty {
-                            DLEmptyState(message: Calendar.current.isDateInToday(selectedDate) ? "今日无任务" : "该日无任务")
+                            let isTodayDate = Calendar.current.isDateInToday(selectedDate)
+                            DLEmptyState(
+                                icon: "tray",
+                                title: isTodayDate ? "今日无任务" : "该日无任务",
+                                subtitle: isTodayDate ? "今天还没有安排任务" : nil,
+                                actionTitle: isTodayDate ? "新建任务" : nil,
+                                action: isTodayDate ? { showCreateSheet = true } : nil
+                            )
                         } else {
                             taskSections
                         }

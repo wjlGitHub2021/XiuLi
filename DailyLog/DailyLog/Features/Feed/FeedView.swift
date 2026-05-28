@@ -24,7 +24,11 @@ struct FeedView: View {
                             ProgressView()
                                 .padding(.top, 100)
                         } else if messages.isEmpty {
-                            DLEmptyState(message: "还没有动态，快去完成任务吧")
+                            DLEmptyState(
+                                icon: "bubble.left.and.bubble.right",
+                                title: "还没有动态",
+                                subtitle: "快去完成任务吧"
+                            )
                         } else {
                             feedList
                         }

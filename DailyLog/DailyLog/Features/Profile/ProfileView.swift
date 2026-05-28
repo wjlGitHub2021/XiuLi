@@ -164,12 +164,10 @@ struct ProfileView: View {
                 .padding(.horizontal, Spacing.sm)
 
             if transactions.isEmpty {
-                Text("还没有金币记录")
-                    .font(.subheadline)
-                    .foregroundStyle(Color.dlTextSecondary)
-                    .padding(Spacing.md)
-                    .frame(maxWidth: .infinity)
-                    .glassEffect(.regular, in: .rect(cornerRadius: CornerRadius.smallCard))
+                DLEmptyState(
+                    icon: "list.bullet.rectangle",
+                    title: "还没有金币记录"
+                )
             } else {
                 VStack(spacing: Spacing.xs) {
                     ForEach(transactions) { tx in

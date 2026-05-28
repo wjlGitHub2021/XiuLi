@@ -121,11 +121,10 @@ struct RewardsView: View {
                     .padding(Spacing.md)
                     .glassEffect(.regular, in: .rect(cornerRadius: CornerRadius.smallCard))
             } else if directRewards.isEmpty {
-                Text("暂无可兑换奖励")
-                    .foregroundStyle(Color.dlTextSecondary)
-                    .padding(Spacing.md)
-                    .frame(maxWidth: .infinity)
-                    .glassEffect(.regular, in: .rect(cornerRadius: CornerRadius.smallCard))
+                DLEmptyState(
+                    icon: "gift",
+                    title: "暂无可兑换奖励"
+                )
             } else {
                 VStack(spacing: Spacing.xs) {
                     ForEach(directRewards) { reward in
