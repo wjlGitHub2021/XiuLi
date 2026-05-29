@@ -69,6 +69,8 @@ cp DailyLog/Core/Supabase/SupabaseClient.swift.example \
 
 ### 4. 安装到真机
 
+> 系统要求：iPhone 需升级至 iOS 26 或以上（目前为 Developer Beta）。本项目使用了 iOS 26 独有的 Liquid Glass API，低版本系统无法运行。
+
 **方式一：Xcode 直装（免费，无需开发者账号）**
 
 1. 用数据线连接 iPhone 到 Mac
