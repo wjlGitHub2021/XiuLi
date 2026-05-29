@@ -67,7 +67,27 @@ cp DailyLog/Core/Supabase/SupabaseClient.swift.example \
 - 这是一个两人协作应用，你需要在后端 Auth 中手动创建两个用户账号
 - 创建账号后，用户首次登录会自动生成 profile（昵称默认"我的昵称"）
 
-### 4. 打开 Xcode 运行
+### 4. 安装到真机
+
+**方式一：Xcode 直装（免费，无需开发者账号）**
+
+1. 用数据线连接 iPhone 到 Mac
+2. 打开 Xcode，选择你的 iPhone 作为运行目标
+3. 在 Signing & Capabilities 中选择你的 Apple ID（免费即可）
+4. Command+R 运行，app 会安装到手机上
+5. 首次安装需要在 iPhone 上信任开发者：设置 → 通用 → VPN与设备管理 → 信任
+
+> 注意：免费账号安装的 app 每 7 天过期，需要重新连电脑运行一次。
+
+**方式二：付费开发者账号 + TestFlight（688元/年）**
+
+1. 注册 Apple Developer Program（https://developer.apple.com/cn/）
+2. 在 Xcode 中 Archive 项目，上传到 App Store Connect
+3. 在 TestFlight 中添加测试人员邮箱
+4. 测试人员通过 TestFlight app 下载安装
+5. 支持推送通知，有效期 90 天
+
+**方式三：模拟器运行**
 
 ```bash
 open DailyLog.xcodeproj

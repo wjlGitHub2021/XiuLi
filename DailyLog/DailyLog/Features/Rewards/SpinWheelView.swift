@@ -10,7 +10,6 @@ struct SpinWheelView: View {
     @State private var showResultAlert = false
     @State private var errorMessage: String?
     @State private var showError = false
-    @State private var spinTimer: Timer?
 
     private let rewardService = RewardService()
     private let spinCost = 10
@@ -131,7 +130,8 @@ struct SpinWheelView: View {
     }
 
     private func rewardCell(reward: Reward, isHighlighted: Bool) -> some View {
-        VStack(spacing: 4) {
+        let borderColor = tierBorderColor(reward.tier)
+        return VStack(spacing: 4) {
             Text(reward.icon)
                 .font(.title2)
             Text(reward.name)
@@ -143,12 +143,26 @@ struct SpinWheelView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .aspectRatio(1, contentMode: .fit)
         .padding(Spacing.xs)
+        .overlay(
+            RoundedRectangle(cornerRadius: CornerRadius.control)
+                .strokeBorder(borderColor, lineWidth: isHighlighted ? 3 : 2)
+        )
         .glassEffect(
-            isHighlighted ? .regular.tint(Color.dlCoin.opacity(0.55)).interactive() : .regular.interactive(),
+            isHighlighted ? .regular.tint(Color.dlCoin.opacity(0.55)).interactive() : .regular.tint(borderColor.opacity(0.12)).interactive(),
             in: .rect(cornerRadius: CornerRadius.control)
         )
-        .scaleEffect(isHighlighted ? 1.05 : 1.0)
-        .animation(.easeInOut(duration: 0.1), value: isHighlighted)
+        .scaleEffect(isHighlighted ? 1.08 : 1.0)
+        .animation(.easeInOut(duration: 0.12), value: isHighlighted)
+    }
+
+    private func tierBorderColor(_ tier: String?) -> Color {
+        switch tier {
+        case "basic": return .green
+        case "rare": return .blue
+        case "legendary": return .yellow
+        case "sacred": return .red
+        default: return .gray
+        }
     }
 
     private func outerCellRewardIndex(gridIndex: Int) -> Int {
@@ -174,45 +188,43 @@ struct SpinWheelView: View {
     private func startSpin() async {
         guard !isSpinning else { return }
         isSpinning = true
-        defer { isSpinning = false }
         highlightedIndex = 0
-
-        var step = 0
-        let timer = Timer.scheduledTimer(withTimeInterval: 0.12, repeats: true) { t in
-            step += 1
-            highlightedIndex = step % 8
-        }
-        RunLoop.main.add(timer, forMode: .common)
-        spinTimer = timer
 
         do {
             let result = try await rewardService.spinWheel(cost: spinCost)
-            try? await Task.sleep(nanoseconds: 600_000_000)
-            timer.invalidate()
-            spinTimer = nil
 
-            if let winIndex = displayRewards.firstIndex(where: {
-                $0.name == result.rewardName && $0.cost == result.cost
-            }) {
-                highlightedIndex = winIndex
-            } else if let winIndex = displayRewards.firstIndex(where: { $0.name == result.rewardName }) {
-                highlightedIndex = winIndex
+            // 找到中奖位置
+            var winIndex = 0
+            if let idx = displayRewards.firstIndex(where: { $0.name == result.rewardName }) {
+                winIndex = idx
             }
 
+            // 减速动画：快→慢，最终停在中奖位置
+            let totalSteps = 24 + winIndex // 转3圈 + 停在目标
+            var step = 0
+            while step < totalSteps {
+                highlightedIndex = step % 8
+                let progress = Double(step) / Double(totalSteps)
+                // 间隔从 0.06s 逐渐增加到 0.35s
+                let interval = 0.06 + 0.29 * progress * progress
+                try? await Task.sleep(nanoseconds: UInt64(interval * 1_000_000_000))
+                step += 1
+            }
+            highlightedIndex = winIndex
+
+            try? await Task.sleep(nanoseconds: 300_000_000)
+            isSpinning = false
             spinResult = result
             showResultAlert = true
             await appState.refreshProfile()
         } catch is CancellationError {
-            timer.invalidate()
-            spinTimer = nil
+            isSpinning = false
             await appState.refreshProfile()
         } catch let urlError as URLError where urlError.code == .cancelled {
-            timer.invalidate()
-            spinTimer = nil
+            isSpinning = false
             await appState.refreshProfile()
         } catch {
-            timer.invalidate()
-            spinTimer = nil
+            isSpinning = false
             await appState.refreshProfile()
             errorMessage = error.localizedDescription
             showError = true
